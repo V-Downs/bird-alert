@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { toast } from '@/components/ui/use-toast'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -159,7 +160,7 @@ function FakeMap({ birds, onSelectBird }: { birds: Bird[], onSelectBird: (bird: 
   )
 }
 
-export default function BirdRescueApp() {
+export function BirdRescueAppComponent() {
   const [location, setLocation] = useState<string>('Des Moines, IA')
   const [birdRescues, setBirdRescues] = useState(initialBirdRescues)
   const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
@@ -271,9 +272,10 @@ export default function BirdRescueApp() {
   }
 
   const handleGetDirections = (address: string) => {
-    // Instead of using toast, we'll log to console
-    console.log(`Getting directions to: ${address}`)
-    // In a real app, you might want to integrate with a maps API here
+    toast({
+      title: "Opening Maps",
+      description: `Getting directions to: ${address}`,
+    })
   }
 
   const RescueHistory = ({ history }: { history: HistoryEvent[] }) => (
@@ -707,7 +709,10 @@ export default function BirdRescueApp() {
         }]
       }
       setBirdRescues([...birdRescues, newBird])
-      console.log(`New rescue created for ${newRescue.species}`)
+      toast({
+        title: "Rescue Created",
+        description: `New rescue for ${newRescue.species} has been created.`,
+      })
       // Reset form
       setNewRescue({
         species: '',
@@ -772,13 +777,13 @@ export default function BirdRescueApp() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="image">Bird Image</Label>
+                <Label htmlFor="image">Upload Photo</Label>
                 <Input
                   id="image"
                   name="image"
                   type="file"
-                  accept="image/*"
                   onChange={handleFileChange}
+                  accept="image/*"
                 />
               </div>
               <Button type="submit" className="w-full">
@@ -792,27 +797,53 @@ export default function BirdRescueApp() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex-grow overflow-y-auto">
-        {activeView === 'list' && <ListView />}
-        {activeView === 'map' && <MapView />}
-        {activeView === 'profile' && <ProfileView />}
-        {activeView === 'admin' && <AdminView />}
-      </div>
-      <div className="flex justify-around items-center h-16 bg-white border-t">
-        <Button variant="ghost" onClick={() => setActiveView('list')}>
-          <ListIcon className="h-6 w-6" />
+    <div className="min-h-screen bg-gray-100 pb-20">
+      {activeView === 'list' && <ListView />}
+      {activeView === 'map' && <MapView />}
+      {activeView === 'profile' && <ProfileView />}
+      {activeView === 'admin' && <AdminView />}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-20 px-6">
+        <Button
+          variant="ghost"
+          className={`flex-1 h-full rounded-none ${activeView === 'list' ? 'text-blue-500' : 'text-gray-500'}`}
+          onClick={() => setActiveView('list')}
+        >
+          <div className="flex flex-col items-center">
+            <ListIcon className="h-6 w-6" />
+            <span className="text-xs mt-1">List</span>
+          </div>
         </Button>
-        <Button variant="ghost" onClick={() => setActiveView('map')}>
-          <MapIcon className="h-6 w-6" />
+        <Button
+          variant="ghost"
+          className={`flex-1 h-full rounded-none ${activeView === 'map' ? 'text-blue-500' : 'text-gray-500'}`}
+          onClick={() => setActiveView('map')}
+        >
+          <div className="flex flex-col items-center">
+            <MapIcon className="h-6 w-6" />
+            <span className="text-xs mt-1">Map</span>
+          </div>
         </Button>
-        <Button variant="ghost" onClick={() => setActiveView('profile')}>
-          <UserIcon className="h-6 w-6" />
+        <Button
+          variant="ghost"
+          className={`flex-1 h-full rounded-none ${activeView === 'profile' ? 'text-blue-500' : 'text-gray-500'}`}
+          onClick={() => setActiveView('profile')}
+        >
+          <div className="flex flex-col items-center">
+            <UserIcon className="h-6 w-6" />
+            <span className="text-xs mt-1">Profile</span>
+          </div>
         </Button>
-        <Button variant="ghost" onClick={() => setActiveView('admin')}>
-          <ShieldIcon className="h-6 w-6" />
+        <Button
+          variant="ghost"
+          className={`flex-1 h-full rounded-none ${activeView === 'admin' ? 'text-blue-500' : 'text-gray-500'}`}
+          onClick={() => setActiveView('admin')}
+        >
+          <div className="flex flex-col items-center">
+            <ShieldIcon className="h-6 w-6" />
+            <span className="text-xs mt-1">Admin</span>
+          </div>
         </Button>
-      </div>
+      </nav>
     </div>
   )
 }
