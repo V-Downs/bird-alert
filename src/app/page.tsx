@@ -1,28 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MapPinIcon, BirdIcon, TruckIcon, HomeIcon, CheckCircleIcon, MoreHorizontalIcon, UserIcon, ListIcon, MapIcon, ArrowLeftIcon, NavigationIcon, ChevronUpIcon, ChevronDownIcon, ClockIcon, ShieldIcon, UploadIcon, FilterIcon } from 'lucide-react'
+import { MapPinIcon, BirdIcon, TruckIcon, HomeIcon, CheckCircleIcon, MoreHorizontalIcon, UserIcon, ListIcon, MapIcon, ArrowLeftIcon, NavigationIcon, ChevronUpIcon, ChevronDownIcon, ShieldIcon, FilterIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Airtable from 'airtable'
 
 type RescueStatus = 'Available' | 'Accepted' | 'En Route' | 'Delivered - Rehabilitating' | 'Delivered - Released'
 type BirdType = 'Songbird' | 'Raptor' | 'Waterfowl' | 'Shorebird' | 'Other'
-
-interface HistoryEvent {
-  status: RescueStatus
-  timestamp: string
-  volunteer?: string
-  location?: string
-}
 
 interface Bird {
   id: number
@@ -31,11 +22,8 @@ interface Bird {
   location: string
   destination: string
   distance: string
-  lat: number
-  lng: number
   status: RescueStatus
   image: string
-  history: HistoryEvent[]
 }
 
 interface Volunteer {
@@ -44,59 +32,6 @@ interface Volunteer {
   avatar: string
   rescuesCompleted: number
 }
-
-const initialBirdRescues: Bird[] = [
-  { 
-    id: 1, 
-    species: 'American Goldfinch', 
-    birdType: 'Songbird',
-    location: 'Des Moines', 
-    destination: 'Iowa Bird Rehabilitation', 
-    distance: '0.5 miles', 
-    lat: 0, 
-    lng: 0, 
-    status: 'Available', 
-    image: '/placeholder.svg?height=200&width=200',
-    history: [
-      { status: 'Available', timestamp: '2023-06-01T10:00:00Z' }
-    ]
-  },
-  { 
-    id: 2, 
-    species: 'Red-tailed Hawk', 
-    birdType: 'Raptor',
-    location: 'Cedar Rapids', 
-    destination: 'Wildthunder Wildlife Center', 
-    distance: '1.2 miles', 
-    lat: 0, 
-    lng: 0, 
-    status: 'En Route', 
-    image: '/placeholder.svg?height=200&width=200',
-    history: [
-      { status: 'Available', timestamp: '2023-06-01T09:00:00Z' },
-      { status: 'Accepted', timestamp: '2023-06-01T09:30:00Z', volunteer: 'John Doe' },
-      { status: 'En Route', timestamp: '2023-06-01T10:00:00Z', volunteer: 'John Doe', location: 'Cedar Rapids' }
-    ]
-  },
-  { 
-    id: 3, 
-    species: 'Mallard Duck', 
-    birdType: 'Waterfowl',
-    location: 'Iowa City', 
-    destination: 'RARE Group', 
-    distance: '2.3 miles', 
-    lat: 0, 
-    lng: 0, 
-    status: 'Delivered - Rehabilitating', 
-    image: '/placeholder.svg?height=200&width=200',
-    history: [
-      { status: 'Available', timestamp: '2023-05-31T14:00:00Z' },
-      { status: 'Accepted', timestamp: '2023-05-31T14:30:00Z', volunteer: 'Jane Smith' },
-      { status: 'En Route', timestamp: '2023-05-31T15:00:00Z', volunteer: 'Jane Smith', location: 'Iowa City' },
-      { status: 'Delivered - Rehabilitating', timestamp: '2023-05-31T16:00:00Z', volunteer: 'Jane Smith', location: 'RARE Group' }
-    ]
-  },
-]
 
 const currentVolunteer: Volunteer = {
   id: 1,
@@ -147,8 +82,8 @@ function FakeMap({ birds, onSelectBird }: { birds: Bird[], onSelectBird: (bird: 
           size="icon"
           className="absolute p-0 w-8 h-8"
           style={{
-            left: `${bird.lng}%`,
-            top: `${bird.lat}%`,
+            left: `${Math.random() * 80 + 10}%`,
+            top: `${Math.random() * 80 + 10}%`,
           }}
           onClick={() => onSelectBird(bird)}
         >
@@ -159,24 +94,50 @@ function FakeMap({ birds, onSelectBird }: { birds: Bird[], onSelectBird: (bird: 
   )
 }
 
+// Initialize Airtable
+const airtable = new Airtable({ apiKey: process.env.NEXT_PUBLIC_AIRTABLE_ACCESS_TOKEN })
+const base = airtable.base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID!)
+
 export default function BirdRescueApp() {
   const [location, setLocation] = useState<string>('Des Moines, IA')
-  const [birdRescues, setBirdRescues] = useState(initialBirdRescues)
+  const [birdRescues, setBirdRescues] = useState<Bird[]>([])
   const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
   const [activeView, setActiveView] = useState<'list' | 'map' | 'profile' | 'admin'>('list')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedStatuses, setSelectedStatuses] = useState<RescueStatus[]>(['Available', 'Accepted', 'En Route'])
   const [selectedBirdTypes, setSelectedBirdTypes] = useState<BirdType[]>(['Songbird', 'Raptor', 'Waterfowl', 'Shorebird', 'Other'])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Randomly position birds on the map
-    const randomizedBirds = birdRescues.map(bird => ({
-      ...bird,
-      lat: Math.random() * 80 + 10, // 10-90% to keep birds away from edges
-      lng: Math.random() * 80 + 10,
-    }))
-    setBirdRescues(randomizedBirds)
+    fetchBirdRescues()
   }, [])
+
+  const fetchBirdRescues = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      console.log('Fetching bird rescues...')
+      const records = await base('Bird Rescues').select().all()
+      console.log('Fetched records:', records)
+      const rescues: Bird[] = records.map(record => ({
+        id: record.get('id') as number,
+        species: record.get('species') as string,
+        birdType: record.get('birdType') as BirdType,
+        location: record.get('location') as string,
+        destination: record.get('destination') as string,
+        distance: record.get('distance') as string,
+        status: record.get('status') as RescueStatus,
+        image: record.get('image') as string,
+      }))
+      console.log('Parsed rescues:', rescues)
+      setBirdRescues(rescues)
+    } catch (error) {
+      console.error('Error fetching bird rescues:', error)
+      setError('Failed to fetch bird rescues. Please try again later.')
+    }
+    setIsLoading(false)
+  }
 
   useEffect(() => {
     if (selectedRescue) {
@@ -184,25 +145,28 @@ export default function BirdRescueApp() {
     }
   }, [selectedRescue])
 
-  const handleStatusChange = (newStatus: RescueStatus) => {
+  const handleStatusChange = async (newStatus: RescueStatus) => {
     if (selectedRescue) {
       const updatedBird = {
         ...selectedRescue,
         status: newStatus,
-        history: [
-          ...selectedRescue.history,
-          {
-            status: newStatus,
-            timestamp: new Date().toISOString(),
-            volunteer: currentVolunteer.name,
-            location: selectedRescue.location
-          }
-        ]
       }
-      setBirdRescues(birdRescues.map(bird => 
-        bird.id === selectedRescue.id ? updatedBird : bird
-      ))
-      setSelectedRescue(updatedBird)
+      try {
+        await base('Bird Rescues').update([
+          {
+            id: selectedRescue.id.toString(),
+            fields: {
+              status: newStatus,
+            }
+          }
+        ])
+        setBirdRescues(birdRescues.map(bird => 
+          bird.id === selectedRescue.id ? updatedBird : bird
+        ))
+        setSelectedRescue(updatedBird)
+      } catch (error) {
+        console.error('Error updating bird rescue status:', error)
+      }
     }
   }
 
@@ -271,31 +235,8 @@ export default function BirdRescueApp() {
   }
 
   const handleGetDirections = (address: string) => {
-    // Instead of using toast, we'll log to console
     console.log(`Getting directions to: ${address}`)
-    // In a real app, you might want to integrate with a maps API here
   }
-
-  const RescueHistory = ({ history }: { history: HistoryEvent[] }) => (
-    <div className="space-y-4 relative">
-      <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200" />
-      {history.map((event, index) => (
-        <div key={index} className="flex items-start relative">
-          <div className={`flex-shrink-0 w-10 h-10 rounded-full ${getStatusColor(event.status)} bg-white border-2 border-current flex items-center justify-center z-10`}>
-            {getIconForStatus(event.status)}
-          </div>
-          <div className="ml-4 flex-grow">
-            <h3 className="text-lg font-semibold">{event.status}</h3>
-            <p className="text-sm text-gray-500">
-              {new Date(event.timestamp).toLocaleString()}
-            </p>
-            {event.volunteer && <p className="text-sm">Volunteer: {event.volunteer}</p>}
-            {event.location && <p className="text-sm">Location: {event.location}</p>}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
 
   const RescueDetails = ({ rescue, onBack }: { rescue: Bird, onBack: () => void }) => (
     <Card className="border shadow-sm">
@@ -316,85 +257,72 @@ export default function BirdRescueApp() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="px-4">
-        <Tabs defaultValue="details" className="mt-2">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
-          <TabsContent value="details" className="space-y-4 mt-4">
-            <img src={rescue.image} alt={rescue.species} className="w-full h-48 object-cover rounded-md" />
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <MapPinIcon className="mr-2 h-5 w-5 text-gray-500" />
-                  <span>{rescue.location}</span>
-                </div>
-                <Button 
-                  variant="link" 
-                  size="sm" 
-                  className="h-auto p-0 text-blue-500 hover:text-blue-700"
-                  onClick={() => handleGetDirections(rescue.location)}
-                >
-                  <NavigationIcon className="mr-1 h-4 w-4" />
-                  Directions
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <HomeIcon className="mr-2 h-5 w-5 text-gray-500" />
-                  <span>{rescue.destination}</span>
-                </div>
-                <Button 
-                  variant="link" 
-                  size="sm" 
-                  className="h-auto p-0 text-blue-500 hover:text-blue-700"
-                  onClick={() => handleGetDirections(rescue.destination)}
-                >
-                  <NavigationIcon className="mr-1 h-4 w-4" />
-                  Directions
-                </Button>
-              </div>
-              <div className="flex items-center">
-                <TruckIcon className="mr-2 h-5 w-5 text-gray-500" />
-                <span>{rescue.distance}</span>
-              </div>
+      <CardContent className="px-4 space-y-4">
+        <img src={rescue.image} alt={rescue.species} className="w-full h-48 object-cover rounded-md" />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <MapPinIcon className="mr-2 h-5 w-5 text-gray-500" />
+              <span>{rescue.location}</span>
             </div>
-            <div className="space-y-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full">
-                    <MoreHorizontalIcon className="mr-2 h-4 w-4" />
-                    Change Status
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuItem onSelect={() => handleStatusChange('Available')}>
-                    Available
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => handleStatusChange('Accepted')}>
-                    Accepted
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => handleStatusChange('En Route')}>
-                    En Route
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => handleStatusChange('Delivered - Rehabilitating')}>
-                    Delivered - Rehabilitating
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => handleStatusChange('Delivered - Released')}>
-                    Delivered - Released
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {getMainActionButton(rescue.status)}
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="h-auto p-0 text-blue-500 hover:text-blue-700"
+              onClick={() => handleGetDirections(rescue.location)}
+            >
+              <NavigationIcon className="mr-1 h-4 w-4" />
+              Directions
+            </Button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <HomeIcon className="mr-2 h-5 w-5 text-gray-500" />
+              <span>{rescue.destination}</span>
             </div>
-          </TabsContent>
-          <TabsContent value="history">
-            <ScrollArea className="h-[60vh] mt-4">
-              <RescueHistory history={rescue.history} />
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="h-auto p-0 text-blue-500 hover:text-blue-700"
+              onClick={() => handleGetDirections(rescue.destination)}
+            >
+              <NavigationIcon className="mr-1 h-4 w-4" />
+              Directions
+            </Button>
+          </div>
+          <div className="flex items-center">
+            <TruckIcon className="mr-2 h-5 w-5 text-gray-500" />
+            <span>{rescue.distance}</span>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full">
+                <MoreHorizontalIcon className="mr-2 h-4 w-4" />
+                Change Status
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuItem onSelect={() => handleStatusChange('Available')}>
+                Available
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleStatusChange('Accepted')}>
+                Accepted
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleStatusChange('En Route')}>
+                En Route
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleStatusChange('Delivered - Rehabilitating')}>
+                Delivered - Rehabilitating
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleStatusChange('Delivered - Released')}>
+                Delivered - Released
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {getMainActionButton(rescue.status)}
+        </div>
       </CardContent>
     </Card>
   )
@@ -554,22 +482,32 @@ export default function BirdRescueApp() {
           </CardHeader>
           <CardContent>
             <FilterOptions />
-            <div className="space-y-2">
-              {filteredBirdRescues.map(rescue => (
-                <Button
-                  key={rescue.id}
-                  className="w-full justify-start"
-                  variant="outline"
-                  onClick={() => setSelectedRescue(rescue)}
-                >
-                  <span className="mr-2 text-2xl">{getBirdTypeIcon(rescue.birdType)}</span>
-                  <span className="flex-grow text-left">{rescue.species} - {rescue.location}</span>
-                  <Badge variant="secondary" className={getStatusColor(rescue.status)}>
-                    {rescue.status}
-                  </Badge>
-                </Button>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex justify-center items-center h-32">
+                <p>Loading rescues...</p>
+              </div>
+            ) : error ? (
+              <div className="flex justify-center items-center h-32 text-red-500">
+                <p>{error}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredBirdRescues.map(rescue => (
+                  <Button
+                    key={rescue.id}
+                    className="w-full justify-start"
+                    variant="outline"
+                    onClick={() => setSelectedRescue(rescue)}
+                  >
+                    <span className="mr-2 text-2xl">{getBirdTypeIcon(rescue.birdType)}</span>
+                    <span className="flex-grow text-left">{rescue.species} - {rescue.location}</span>
+                    <Badge variant="secondary" className={getStatusColor(rescue.status)}>
+                      {rescue.status}
+                    </Badge>
+                  </Button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -688,34 +626,43 @@ export default function BirdRescueApp() {
       }
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault()
-      const newBird: Bird = {
-        id: birdRescues.length + 1,
-        species: newRescue.species,
-        birdType: newRescue.birdType,
-        location: newRescue.location,
-        destination: newRescue.destination,
-        distance: '0 miles', // This should be calculated based on actual coordinates
-        lat: Math.random() * 80 + 10,
-        lng: Math.random() * 80 + 10,
-        status: 'Available',
-        image: newRescue.image ? URL.createObjectURL(newRescue.image) : '/placeholder.svg?height=200&width=200',
-        history: [{
+      try {
+        const newBird: Partial<Bird> = {
+          species: newRescue.species,
+          birdType: newRescue.birdType,
+          location: newRescue.location,
+          destination: newRescue.destination,
+          distance: '0 miles', // This should be calculated based on actual coordinates
           status: 'Available',
-          timestamp: new Date().toISOString()
-        }]
+          image: newRescue.image ? URL.createObjectURL(newRescue.image) : '/placeholder.svg?height=200&width=200',
+        }
+        
+        const createdRecord = await base('Bird Rescues').create([
+          { fields: newBird as any }
+        ])
+
+        if (createdRecord && createdRecord[0]) {
+          const createdBird: Bird = {
+            ...newBird,
+            id: parseInt(createdRecord[0].getId()),
+          } as Bird
+          setBirdRescues([...birdRescues, createdBird])
+          console.log(`New rescue created for ${newRescue.species}`)
+        }
+
+        // Reset form
+        setNewRescue({
+          species: '',
+          birdType: 'Songbird',
+          location: '',
+          destination: '',
+          image: null,
+        })
+      } catch (error) {
+        console.error('Error creating new rescue:', error)
       }
-      setBirdRescues([...birdRescues, newBird])
-      console.log(`New rescue created for ${newRescue.species}`)
-      // Reset form
-      setNewRescue({
-        species: '',
-        birdType: 'Songbird',
-        location: '',
-        destination: '',
-        image: null,
-      })
     }
 
     return (
