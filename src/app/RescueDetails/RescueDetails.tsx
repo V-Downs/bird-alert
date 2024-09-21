@@ -245,95 +245,94 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
     
 
     return (
+      <div>
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2"> 
+            <ArrowLeftIcon className="h-4 w-4" />
+          </Button>
+        </div>
+        
         <Card className="border shadow-lg rounded-lg overflow-hidden">
-        <CardHeader className="bg-stone-100 border-b border-stone-200 px-4 py-2">
-          <div className="flex items-center">
-            <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
-              <ArrowLeftIcon className="h-4 w-4" />
-            </Button>
-            <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Rescue Details</CardTitle>
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center">
-              {/* <span className="mr-2 text-2xl">{getBirdTypeIcon(rescue.birdType)}</span> */}
-              <span className="font-medium text-stone-700">{rescue.species}</span>
-            </div>
-            <Badge variant="secondary" className={`${getStatusColor(rescue.status)} text-white`}>
-              {rescue.status}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 py-4 space-y-4">
-          {/* <img 
-            src={rescue.image} 
-            alt={rescue.species} 
-            className="w-full h-48 object-cover rounded-md shadow-md"
-          /> */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
-              <div className="flex items-center overflow-hidden">
-                <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                <span className="text-stone-700 truncate">{rescue.location}</span>
+          <CardHeader className="bg-stone-100 border-b border-stone-200 px-4 py-2">
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center">
+                {/* <span className="mr-2 text-2xl">{getBirdTypeIcon(rescue.birdType)}</span> */}
+                <span className="font-medium text-xl text-stone-700">{rescue.species}</span>
               </div>
-              <a href={`https://maps.google.com/?q=${rescue.location}` } target='_blank'>
-                    Directions
-              </a>
+              <Badge variant="secondary" className={`${getStatusColor(rescue.status)} text-white`}>
+                {rescue.status}
+              </Badge>
             </div>
-            <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
-              <div className="flex items-center overflow-hidden">
-                <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                <span className="text-stone-700 truncate">{rescue.destination}</span>
+          </CardHeader>
+          <CardContent className="px-4 py-4 space-y-4">
+            {/* <img 
+              src={rescue.image} 
+              alt={rescue.species} 
+              className="w-full h-48 object-cover rounded-md shadow-md"
+            /> */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
+                <div className="flex items-center overflow-hidden">
+                  <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
+                  <span className="text-stone-700 truncate">{rescue.location}</span>
+                </div>
+                <a href={`https://maps.google.com/?q=${rescue.location}`} target='_blank' rel="noopener noreferrer">
+                  Directions
+                </a>
               </div>
-
-
-              <a href={`https://maps.google.com/?q=${rescue.destination}` } target='_blank'>
-                    Directions
-              </a>
+              <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
+                <div className="flex items-center overflow-hidden">
+                  <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
+                  <span className="text-stone-700 truncate">{rescue.destination}</span>
+                </div>
+                <a href={`https://maps.google.com/?q=${rescue.destination}`} target='_blank' rel="noopener noreferrer">
+                  Directions
+                </a>
+              </div>
+              <div className="flex items-center bg-stone-50 p-3 rounded-md">
+                <TruckIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
+                <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
+                {/* <span className="text-stone-700">{rescue.distance}</span> */}
+              </div>
             </div>
-            <div className="flex items-center bg-stone-50 p-3 rounded-md">
-              <TruckIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-              <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
-  
-              {/* <span className="text-stone-700">{rescue.distance}</span> */}
-            </div>
-          </div>
-          <div className="space-y-4">
-            {/* <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
-                  <MoreHorizontalIcon className="mr-2 h-4 w-4" />
-                  Change Status
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                {(['Pending', 'In Route', 'Pending', 'Rescued'] as RescueStatus[]).map((status) => (
-                  <DropdownMenuItem key={status} onSelect={() => handleStatusChange(status)}>
-                    {status}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu> */}
-            {
+            <div className="space-y-4">
+              {/* <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
+                    <MoreHorizontalIcon className="mr-2 h-4 w-4" />
+                    Change Status
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  {(['Pending', 'In Route', 'Pending', 'Rescued'] as RescueStatus[]).map((status) => (
+                    <DropdownMenuItem key={status} onSelect={() => handleStatusChange(status)}>
+                      {status}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu> */}
+              {
                 showAcceptForm && 
                 acceptForm()
-            }
-            {rescue.status === 'Pending' && (
-              <Button className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200" onClick={handleAcceptClick}>
-                Accept Rescue
-              </Button>
-            )}
-            {rescue.status === 'In Route' && (
-              <Button className="w-full bg-red-700 hover:bg-red-800 text-white transition-colors duration-200" onClick={() => handleStatusChange('Rescued')}>
-                Mark as rescued
-              </Button>
-            )}
-            {rescue.status === 'Rescued' && (
-              <Button className="w-full bg-emerald-700 hover:bg-emerald-800 text-white transition-colors duration-200" onClick={() => handleStatusChange('Delivered')}>
-                Mark as Delivered
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              }
+              {rescue.status === 'Pending' && (
+                <Button className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200" onClick={handleAcceptClick}>
+                  Accept Rescue
+                </Button>
+              )}
+              {rescue.status === 'In Route' && (
+                <Button className="w-full bg-red-700 hover:bg-red-800 text-white transition-colors duration-200" onClick={() => handleStatusChange('Rescued')}>
+                  Mark as rescued
+                </Button>
+              )}
+              {rescue.status === 'Rescued' && (
+                <Button className="w-full bg-emerald-700 hover:bg-emerald-800 text-white transition-colors duration-200" onClick={() => handleStatusChange('Delivered')}>
+                  Mark as Delivered
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     )
 }

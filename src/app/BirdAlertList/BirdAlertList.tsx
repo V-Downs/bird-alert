@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import RescueDetails from '../RescueDetails/RescueDetails'
 import Airtable from 'airtable'
+import Image from 'next/image'
 
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
 
@@ -75,25 +76,30 @@ export default function BirdAlertList() {
     
 
     return (
-        <div className="space-y-4">
+        <div>
       <Card className="bg-fill bg-center text-white rounded-none" style={{ backgroundImage: "url('../images/birds.jpg')" }}>
        
-          <CardTitle className="text-2xl font-bold px-8 pt-12 pb-2">Iowa Bird Rehabilitation</CardTitle>
-        
+          <CardTitle className="text-2xl font-bold px-6 pt-12"><Image
+            src="/images/logo.png"
+            width={70}
+            height={70}
+            className={"float-left pr-2"}
+            alt="Iowa Bird Rehabilitation Logo"
+          />
+            Iowa Bird Rehabilitation</CardTitle>
         <CardContent>
           <div className="flex items-center text-sm text-stone-300 pb-6">
-            <MapPinIcon className="mr-2 h-4 w-4" />
-            <span>My Location: {location}</span>
+            <span>Creating a future for our feathered friends.</span>
           </div>
         </CardContent>
       </Card>
-      <div className="space-y-4 px-8 py-4">
+      <div className="space-y-4 px-4 py-2">
       {selectedRescue ? (
         <RescueDetails rescue={selectedRescue} onBack={() => setSelectedRescue(null)} selectedRescue={selectedRescue} setSelectedRescue={setSelectedRescue} fetchBirdRescues={fetchBirdRescues}/>
       ) : (
-        <Card className="bg-white shadow-lg rounded-lg overflow-hidden">
-          <CardHeader className="bg-stone-100 border-b border-stone-200">
-            <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Available Rescues</CardTitle>
+        <Card className="overflow-hidden border-none shadow-none bg-stone-100">
+          <CardHeader className="">
+            <CardTitle className="text-lg font-semibold text-stone-800 pt-4">Available Rescues</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             {/* <FilterOptions /> */}
