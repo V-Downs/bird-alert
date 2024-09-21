@@ -38,10 +38,10 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
     const getStatusColor = (status: RescueStatus) => {
         switch (status) {
-          case 'Pending': return 'bg-lime-600'
-          case 'In Route': return 'bg-red-700'
-          case 'Rescued': return 'bg-emerald-700'
-          case 'Delivered': return 'bg-teal-700'
+          case 'Pending': return 'bg-rose-600 hover:bg-rose-800'
+          case 'In Route': return 'bg-amber-600 hover:bg-amber-800'
+          case 'Rescued': return 'bg-violet-700 hover:bg-violet-800'
+          case 'Delivered': return 'bg-teal-700 hover:bg-teal-800'
         }
       }
 
