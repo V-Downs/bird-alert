@@ -122,7 +122,7 @@ export default function BirdAlertList() {
                             variant="outline"
                             role="combobox"
                             aria-expanded={isFilterOpen}
-                            className="w-[200px] justify-between"
+                            className="justify-between"
                         >
                             {value
                                 ? Array.from(value).join(',')
@@ -138,6 +138,7 @@ export default function BirdAlertList() {
                                 <CommandGroup>
                                     {allStatuses.map((framework) => (
                                         <CommandItem
+                                            key={framework}
                                             onSelect={(currentValue: any) => {
                                                     const newValue = new Set(value)
                                                     if (newValue.has(framework)) {
@@ -182,7 +183,7 @@ export default function BirdAlertList() {
                   value.has(bird.status)
                 ).sort((a, b) => {
                     // Show pending rescues first
-                    return a.status == 'Pending' ? -1 : 1
+                    return allStatuses.indexOf(a.status) < allStatuses.indexOf(b.status) ? -1 : 1;
                 }).map(rescue => (
                   <Card key={rescue.id} className="overflow-hidden">
                     <CardHeader className="p-4">
