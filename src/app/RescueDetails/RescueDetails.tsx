@@ -224,15 +224,15 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                     width={rescue.photo['width']}
                     height={rescue.photo['height']}
                     alt={rescue.species}
-                    className="rounded-md shadow-md w-full lg:w-2/4 float-left lg:mr-8
-                    lg:mb-8"/>
+                    className="rounded-md shadow-md w-full md:w-2/4 float-left md:mr-8
+                    md:mb-8"/>
                 <Badge variant="secondary" className={`${getRTLevelColor(rescue.rtLevel)} text-white`}>
                     {rescue.rtLevel}
                 </Badge>
 
-                <div className="space-y-4">
-                    Technical Skills:
-                    <ul>
+                <div className="">
+                    <span className="font-bold text-black">Technical Skills:</span>
+                    <ul className="">
                         {rescue.skills?.map((skill, index) => <li key={index}>{skill}</li>)}
                     </ul>
                 </div>
