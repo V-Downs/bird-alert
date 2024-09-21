@@ -12,20 +12,10 @@ import React, { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import Airtable from 'airtable'
 
-type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
-
-interface Bird {
-  id: string,
-  species: string,
-  location: string,
-  destination: string,
-  status: RescueStatus,
-  rescuerName: string
-}
-
-export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: Bird, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
+export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: BirdAlert, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
+    //state variables
     const [location, setLocation] = useState<string>('Des Moines, IA')
-    const [birdRescues, setBirdRescues] = useState<Bird[]>([])
+    const [birdRescues, setBirdRescues] = useState<BirdAlert[]>([])
     // const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
     const [activeView, setActiveView] = useState<'list' | 'admin'>('list')
     const [selectedStatuses, setSelectedStatuses] = useState<RescueStatus[]>(['Pending', 'In Route', 'Rescued', 'Delivered'])
@@ -40,10 +30,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
     const [formError, setFormError] = useState<string | null>(null)
     const [volunteers, setVolunteers] = useState<any[]>([])
 
+    //connecting to airtable
     const airtable = new Airtable({ apiKey: process.env.NEXT_PUBLIC_AIRTABLE_ACCESS_TOKEN })
     const base = airtable.base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID!)
 
-
+    // colors for the statuses that correpond to the airtable colors in the 'VolunteerStatus' column
     const getStatusColor = (status: RescueStatus) => {
         switch (status) {
           case 'Pending': return 'bg-rose-600 hover:bg-rose-800'
@@ -53,8 +44,18 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
+      const getRTLevelColor = (level: RTLevel) => {
+          switch (level) {
+              case 'Green: songbirds & babies': return 'bg-green-600'
+              case 'Yellow: geese, ducks and swans': return 'bg-yellow-600'
+              case 'Red: herons, bats': return 'bg-red-600'
+              case 'Purple: raptors': return 'bg-purple-600'
+          }
+      }
+
+      //Change status of VolunteerStatus
       const handleStatusChange = async (newStatus: RescueStatus) => {
-        console.log(selectedRescue)
+
         if (selectedRescue) {
           setIsLoading(true)
           try {
@@ -66,8 +67,12 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               return
             }
 
-            await updateRescueInAirtable(selectedRescue.id, updatedFields)
+            // update airtable column
+            if (selectedRescue.currentVolunteer) {
+              await updateRescueInAirtable(selectedRescue.id, updatedFields)
+            }
 
+            // update the bird in BirdAlertList so that it has the new status
             const updatedBird = {
               ...selectedRescue,
               ...updatedFields,
@@ -96,25 +101,26 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         handleStatusChange('In Route');
       }
 
-      const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
 
         console.log(selectedRescue.id)
+        // await updateRescueInAirtable(selectedRescue.id, {VolunteerStatus: "In Route"})
         const fields = { CurrentVolunteer: localRescuerName}
         try {
-          const updatedRecords = await base('Bird Alerts').update([
-            {
-              id: selectedRescue.id,
-              fields: fields
-            }
-          ])
-          setShowAcceptForm(false)
-          return updatedRecords
+            const updatedRecords = await base('Bird Alerts').update([
+                {
+                    id: selectedRescue.id,
+                    fields: fields
+                }
+            ])
+            setShowAcceptForm(false)
+            return updatedRecords
         }catch {
-          throw error
+            throw error
         }
-      }
+    }
 
-      const fetchVolunteers = async () => {
+      // get volunteers based off of the PossibleVolunteers columnconst fetchVolunteers = async () => {
           setIsLoading(true)
           setError(null)
           try {
@@ -155,8 +161,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                             required
                             /> */}
                             <Label className="block mb-2 text-sm font-medium text-gray-900"> Your Name</Label>
-                            <select className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required onChange={(e) => setLocalRescuerName(e.target.value)} name='name'>
-                              <option disabled selected>-- Please Pick Your Name</option>
+                            <select required onChange={(e) => setLocalRescuerName(e.target.value)} name='name'
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" >
+                              <option value={""}>-- Please Pick Your Name</option>
                                 {populateNameOptions()}
                             </select>
 
@@ -176,12 +183,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 )
         }
 
+      // this is what actually populates the list
+      function populateNameOptions() {
+          const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
 
-
-        function populateNameOptions() {
-            const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
-
-            const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
+          const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
               return (
                   <option key={index} value={vol.name}>
                         {vol.name}
@@ -240,38 +246,51 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="px-4 py-4 space-y-4">
-            {/* <img
-              src={rescue.image}
-              alt={rescue.species}
-              className="w-full h-48 object-cover rounded-md shadow-md"
-            /> */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
-                <div className="flex items-center overflow-hidden">
-                  <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                  <a href={`https://maps.google.com/?q=${rescue.location}`} target='_blank' rel="noopener noreferrer" className="font-medium text-lime-600 dark:text-lime-500 hover:underline">
+            <CardContent className="px-4 py-4 space-y-4">
+                <img
+                    src={rescue.photo['url']}
+                    width={rescue.photo['width']}
+                    height={rescue.photo['height']}
+                    alt={rescue.species}
+                    className="rounded-md shadow-md"/>
+                <Badge variant="secondary" className={`${getRTLevelColor(rescue.rtLevel)} text-white`}>
+                    {rescue.rtLevel}
+                </Badge>
+
+                <div className="space-y-4">
+                    Technical Skills:
+                    <ul>
+                        {rescue.skills?.map((skill) => <li>{skill}</li>)}
+                    </ul>
+                </div>
+
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
+                        <div className="flex items-center overflow-hidden">
+                            <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500"/>
+                            <a href={`https://maps.google.com/?q=${rescue.location}`} target='_blank' rel="noopener noreferrer" className="font-medium text-lime-600 dark:text-lime-500 hover:underline">
                 <span className="float-left truncate hover:underline">{rescue.location}</span>
                 </a>
                 </div>
-              </div>
-              <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
-                <div className="flex items-center overflow-hidden">
-                  <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                  <a href={`https://maps.google.com/?q=${rescue.destination}`} target='_blank' rel="noopener noreferrer" className="font-medium text-lime-600 dark:text-lime-500 hover:underline">
-                  <span className="float-left truncate hover:underline">{rescue.destination}</span>
+                    </div>
+                    <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
+                        <div className="flex items-center overflow-hidden">
+                            <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500"/>
+                            <a href={`https://maps.google.com/?q=${rescue.destination}`} target='_blank' rel="noopener noreferrer" className="font-medium text-lime-600 dark:text-lime-500 hover:underline">
+                            <span className="float-left truncate hover:underline">{rescue.destination}</span>
                 </a>
                 </div>
 
               </div>
               <div className="flex items-center bg-stone-50 p-3 rounded-md">
                 <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
-                {/* <span className="text-stone-700">{rescue.distance}</span> */}
-              </div>
-            </div>
-            <div className="space-y-4">
-              {/* <DropdownMenu>
+                <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
+
+                        {/* <span className="text-stone-700">{rescue.distance}</span> */}
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    {/* <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
                     <MoreHorizontalIcon className="mr-2 h-4 w-4" />
@@ -286,27 +305,32 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu> */}
-              {
-                showAcceptForm &&
-                acceptForm()
-              }
-              {rescue.status === 'Pending' && (
-                <Button className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200" onClick={handleAcceptClick}>
-                  Accept Rescue
-                </Button>
-              )}
-              {rescue.status === 'In Route' && (
-                <Button className="w-full bg-red-700 hover:bg-red-800 text-white transition-colors duration-200" onClick={() => handleStatusChange('Rescued')}>
-                  Mark as rescued
-                </Button>
-              )}
-              {rescue.status === 'Rescued' && (
-                <Button className="w-full bg-emerald-700 hover:bg-emerald-800 text-white transition-colors duration-200" onClick={() => handleStatusChange('Delivered')}>
-                  Mark as Delivered
-                </Button>
-              )}
-            </div>
-          </CardContent>
+                    {
+                        showAcceptForm &&
+                        acceptForm()
+                    }
+                    {rescue.status === 'Pending' && (
+                        <Button
+                            className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200"
+                            onClick={handleAcceptClick}>
+                            Accept Rescue
+                        </Button>
+                    )}
+                    {rescue.status === 'In Route' && (
+                        <Button className="w-full bg-red-700 hover:bg-red-800 text-white transition-colors duration-200"
+                                onClick={() => handleStatusChange('Rescued')}>
+                            Mark as rescued
+                        </Button>
+                    )}
+                    {rescue.status === 'Rescued' && (
+                        <Button
+                            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white transition-colors duration-200"
+                            onClick={() => handleStatusChange('Delivered')}>
+                            Mark as Delivered
+                        </Button>
+                    )}
+                </div>
+            </CardContent>
         </Card>
       </div>
     )

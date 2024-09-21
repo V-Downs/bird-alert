@@ -2,9 +2,8 @@
 
 import {
     MapPinIcon,
-    TruckIcon,
     HomeIcon,
-    ChevronsUpDown
+    ChevronsUpDown, UserCircle
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
@@ -18,26 +17,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import {cn} from "@/lib/utils";
 
-// rescue status is a list of statuses that is the same as the statuses in airtable under the column 'VolunteerStatus' in the Bird Alerts table
-type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
-
-// type Bird has variables from the airtable database. Rescuer name is the same as the 'Current Volunteer'
-interface Bird {
-  id: string,
-  species: string,
-  location: string,
-  destination: string,
-  status: RescueStatus,
-  rescuerName: string,
-  possibleVolunteers: object[],
-  currentVolunteer: string
-}
-
 export default function BirdAlertList() {
     // creates the variables needed to set up the bird alert list
     const [location, setLocation] = useState<string>('Des Moines, IA')
-    const [birdRescues, setBirdRescues] = useState<Bird[]>([])
-    const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
+    const [birdRescues, setBirdRescues] = useState<BirdAlert[]>([])
+    const [selectedRescue, setSelectedRescue] = useState<BirdAlert | null>(null)
     const allStatuses = ['Pending', 'In Route', 'Rescued', 'Delivered'] as RescueStatus[];
     const [value, setValue] = useState(new Set<RescueStatus>(['Pending', 'In Route', 'Rescued']))
     const [isLoading, setIsLoading] = useState(true)
@@ -68,15 +52,17 @@ export default function BirdAlertList() {
           const records = await base('Bird Alerts').select().all()
 
           //conversion
-          const rescues: Bird[] = records.map((record) => ({
+          const rescues: BirdAlert[] = records.map((record) => ({
             id: record.get('_id') as string,
             species: record.get('Type of Bird') as string,
             location: record.get('Full Pick Up Address') as string,
             destination: record.get('Drop Off Address') as string,
             status: record.get('VolunteerStatus') as RescueStatus,
-            rescuerName: record.get('Current Volunteer') as string,
+            rtLevel: record.get('R&T Level') as RTLevel,
+            skills: record.get('Technical Skills') as Skills[],
             possibleVolunteers: record.get("Possible Volunteers") as object[],
-            currentVolunteer: record.get("CurrentVolunteer") as string
+            currentVolunteer: record.get("CurrentVolunteer") as string,
+            photo: record.get('Bird Photo') ? ((record.get('Bird Photo') as object[])[0] as { url: string, width: number, height: number }) : {}as { url: string, width: number, height: number },
           }))
 
           //sets state variable
@@ -141,7 +127,8 @@ export default function BirdAlertList() {
                                 <CommandGroup>
                                     {allStatuses.map((framework) => (
                                         <CommandItem
-                                            onSelect={(currentValue) => {
+                                            key={framework}
+                                            onSelect={(currentValue: any) => {
                                                     const newValue = new Set(value)
                                                     if (newValue.has(framework)) {
                                                         newValue.delete(framework)
@@ -185,7 +172,7 @@ export default function BirdAlertList() {
                   value.has(bird.status)
                 ).sort((a, b) => {
                     // Show pending rescues first
-                    return a.status == 'Pending' ? -1 : 1
+                    return allStatuses.indexOf(a.status) < allStatuses.indexOf(b.status) ? -1 : 1;
                 }).map(rescue => (
                   <Card key={rescue.id} className="overflow-hidden">
                     <CardHeader className="p-4">
@@ -209,9 +196,9 @@ export default function BirdAlertList() {
                           <span className="truncate">{rescue.destination}</span>
                         </div>
                         <div className="flex items-center text-sm text-stone-600">
-                          <TruckIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <UserCircle className="mr-2 h-4 w-4 flex-shrink-0" />
                           {/* <span>{rescue.distance}</span> */}
-                          <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
+                          <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
                         </div>
                       </div>
                     </CardContent>
