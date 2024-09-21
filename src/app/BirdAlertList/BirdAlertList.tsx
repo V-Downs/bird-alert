@@ -210,33 +210,32 @@ export default function BirdAlertList() {
                     </CardFooter>
                   </Card>
                 ))}
-
-                  <Card key="emergency" className="overflow-hidden">
-                      <CardHeader className="p-4">
-                          <div className="flex justify-between items-center">
-                              <div className="flex items-center space-x-2">
-                                  <CardTitle className="text-lg font-semibold">Emergency</CardTitle>
-                              </div>
-                          </div>
-                      </CardHeader>
-                      <CardContent className="p-4">
-                          If you're having an emergency with a bird rescue, call us.
-                      </CardContent>
-                      <CardFooter className="bg-stone-50 p-4">
-                          <a href="tel:5152075008"
-                              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input shadow-sm hover:text-accent-foreground h-9 px-4 py-2 w-full bg-red-600 hover:bg-red-300 transition-colors duration-200 ease-in-out text-white"
-                          >
-                              <PhoneIcon className="mr-2"/> Call
-                          </a>
-                      </CardFooter>
-                  </Card>
-
               </div>
             )}
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+
+            <Card key="emergency" className="rounded-xl border text-card-foreground overflow-hidden border-none shadow-none bg-stone-100">
+                <CardHeader className="p-4">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                            <CardTitle className="text-lg font-semibold">Emergency</CardTitle>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                    If you're having an emergency with a bird rescue, call us.
+                </CardContent>
+                <CardFooter className="bg-stone-50 p-4">
+                    <a href="tel:5152075008"
+                       className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input shadow-sm hover:text-accent-foreground h-9 px-4 py-2 w-full bg-red-600 hover:bg-red-300 transition-colors duration-200 ease-in-out text-white"
+                    >
+                        <PhoneIcon className="mr-2"/> Call
+                    </a>
+                </CardFooter>
+            </Card>
     </div>
     )
 }
