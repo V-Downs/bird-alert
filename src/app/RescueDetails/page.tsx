@@ -149,7 +149,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
                 <span className="text-stone-700 truncate">{rescue.location}</span>
               </div>
-              <Button 
+              {/* <Button 
                 variant="link" 
                 size="sm" 
                 className="text-lime-600 hover:text-lime-700 transition-colors duration-200 whitespace-nowrap"
@@ -157,14 +157,17 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               >
                 <NavigationIcon className="mr-1 h-4 w-4" />
                 Directions
-              </Button>
+              </Button> */}
+              <a href={`https://maps.google.com/?q=${rescue.location}` } target='_blank'>
+                    Directions
+              </a>
             </div>
             <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
               <div className="flex items-center overflow-hidden">
                 <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
                 <span className="text-stone-700 truncate">{rescue.destination}</span>
               </div>
-              <Button 
+              {/* <Button 
                 variant="link" 
                 size="sm" 
                 className="text-lime-600 hover:text-lime-700 transition-colors duration-200 whitespace-nowrap"
@@ -172,7 +175,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               >
                 <NavigationIcon className="mr-1 h-4 w-4" />
                 Directions
-              </Button>
+              </Button> */}
+
+              <a href={`https://maps.google.com/?q=${rescue.destination}` } target='_blank'>
+                    Directions
+              </a>
             </div>
             <div className="flex items-center bg-stone-50 p-3 rounded-md">
               <TruckIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
