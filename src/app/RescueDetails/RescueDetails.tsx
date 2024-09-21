@@ -11,10 +11,10 @@ import Airtable from 'airtable'
 // import { Label } from '@/components/ui/label'
 // import { Input } from '@/components/ui/input'
 
-
-
+// rescue status is a list of statuses that is the same as the statuses in airtable under the column 'VolunteerStatus' in the Bird Alerts table
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
 
+// type Bird that is a collection of variables from airtable
 interface Bird {
   id: string,
   species: string,
@@ -25,6 +25,7 @@ interface Bird {
 }
 
 export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: Bird, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
+    //state variables
     const [location, setLocation] = useState<string>('Des Moines, IA')
     const [birdRescues, setBirdRescues] = useState<Bird[]>([])
     // const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
@@ -41,10 +42,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
     const [formError, setFormError] = useState<string | null>(null)
     const [volunteers, setVolunteers] = useState<any[]>([])
 
+    //connecting to airtable
     const airtable = new Airtable({ apiKey: process.env.NEXT_PUBLIC_AIRTABLE_ACCESS_TOKEN })
     const base = airtable.base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID!)
 
-
+    // colors for the statuses that correpond to the airtable colors in the 'VolunteerStatus' column
     const getStatusColor = (status: RescueStatus) => {
         switch (status) {
           case 'Pending': return 'bg-rose-600 hover:bg-rose-800'
@@ -54,6 +56,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
+      //Change status of VolunteerStatus
       const handleStatusChange = async (newStatus: RescueStatus) => {
         console.log(selectedRescue)
         if (selectedRescue) {
@@ -66,9 +69,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               setIsLoading(false)
               return
             }
-    
+
+            // update airtable column
             await updateRescueInAirtable(selectedRescue.id, updatedFields)
-    
+
+            // update the bird in BirdAlertList so that it has the new status
             const updatedBird = {
               ...selectedRescue,
               ...updatedFields,
@@ -110,6 +115,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         // }
         }
 
+        // get volunteers based off of the PossibleVolunteers column
         const fetchVolunteers = async () => {
             setIsLoading(true)
             setError(null)
@@ -180,7 +186,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
 
         
-        
+        // this is what actually populates the list 
         function populateNameOptions() {            
             const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
     
@@ -194,9 +200,6 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         
             return volunteerOptionElements
         }
-
-       
-    
 
     //   const fetchBirdRescues = async () => {
     //     setIsLoading(true)
