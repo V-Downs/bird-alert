@@ -57,7 +57,17 @@ export default function BirdRescueApp() {
 
   useEffect(() => {
     fetchBirdRescues()
+    testAirtableConnection()
   }, [])
+
+  const testAirtableConnection = async () => {
+    try {
+      const records = await base('Bird Rescues').select().firstPage()
+      console.log('Airtable connection successful. First record:', records[0])
+    } catch (error) {
+      console.error('Airtable connection failed:', error)
+    }
+  }
 
   const fetchBirdRescues = async () => {
     setIsLoading(true)
@@ -116,12 +126,20 @@ export default function BirdRescueApp() {
   }
 
   const updateRescueInAirtable = async (id: string, fields: Partial<Bird>) => {
-    await base('Bird Rescues').update([
-      {
-        id,
-        fields: fields as any,
-      }
-    ])
+    console.log('Updating Airtable record:', id, 'with fields:', fields)
+    try {
+      const updatedRecords = await base('Bird Rescues').update([
+        {
+          id,
+          fields: fields as any,
+        }
+      ])
+      console.log('Airtable update response:', updatedRecords)
+      return updatedRecords
+    } catch (error) {
+      console.error('Error updating Airtable:', error)
+      throw error
+    }
   }
 
   const handleAcceptSubmit = async (e: React.FormEvent) => {
@@ -129,13 +147,19 @@ export default function BirdRescueApp() {
     if (selectedRescue) {
       setIsLoading(true)
       try {
+        console.log('Submitting form with data:', { rescuerName, rescuerPhone })
+        
         const updatedFields: Partial<Bird> = {
           status: 'Accepted',
           rescuerName,
           rescuerPhone,
         }
 
+        console.log('Updating Airtable with fields:', updatedFields)
+
         await updateRescueInAirtable(selectedRescue.id, updatedFields)
+
+        console.log('Airtable update successful')
 
         const updatedBird = {
           ...selectedRescue,
@@ -149,7 +173,7 @@ export default function BirdRescueApp() {
         setRescuerName('')
         setRescuerPhone('')
       } catch (error) {
-        console.error('Error accepting rescue:', error)
+        console.error('Detailed error when accepting rescue:', error)
         setError('Failed to accept rescue. Please try again.')
       }
       setIsLoading(false)
@@ -166,45 +190,67 @@ export default function BirdRescueApp() {
     }
   }
 
-  const AcceptForm = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Accept Rescue</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowAcceptForm(false)}>
-              <XIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAcceptSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="rescuerName">Your Name</Label>
-              <Input
-                id="rescuerName"
-                value={rescuerName}
-                onChange={(e) => setRescuerName(e.target.value)}
-                required
-              />
+  const AcceptForm = () => {
+    const [localRescuerName, setLocalRescuerName] = useState(rescuerName)
+    const [localRescuerPhone, setLocalRescuerPhone] = useState(rescuerPhone)
+    const [formError, setFormError] = useState<string | null>(null)
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault()
+      setFormError(null)
+      try {
+        await handleAcceptSubmit(e)
+        setRescuerName(localRescuerName)
+        setRescuerPhone(localRescuerPhone)
+      } catch (error) {
+        console.error('Error in form submission:', error)
+        setFormError('Failed to submit form. Please try again.')
+      }
+    }
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowAcceptForm(false)}>
+        <Card className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Accept Rescue</CardTitle>
+              <Button variant="ghost" size="icon" onClick={() => setShowAcceptForm(false)}>
+                <XIcon className="h-4 w-4" />
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="rescuerPhone">Your Phone Number</Label>
-              <Input
-                id="rescuerPhone"
-                value={rescuerPhone}
-                onChange={(e) => setRescuerPhone(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
-              Accept Rescue
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  )
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="rescuerName">Your Name</Label>
+                <Input
+                  id="rescuerName"
+                  value={localRescuerName}
+                  onChange={(e) => setLocalRescuerName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rescuerPhone">Your Phone Number</Label>
+                <Input
+                  id="rescuerPhone"
+                  value={localRescuerPhone}
+                  onChange={(e) => setLocalRescuerPhone(e.target.value)}
+                  required
+                />
+              </div>
+              {formError && (
+                <div className="text-red-500 text-sm">{formError}</div>
+              )}
+              <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
+                Accept Rescue
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   const ListView = () => (
     <div className="p-4 space-y-4">
@@ -273,7 +319,7 @@ export default function BirdRescueApp() {
                     </CardContent>
                     <CardFooter className="bg-stone-50 p-4">
                       <Button 
-                        className="w-full bg-lime-600 hover:bg-lime-700 text-white"
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input shadow-sm hover:text-accent-foreground h-9 px-4 py-2 w-full bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out text-black"
                         onClick={() => setSelectedRescue(rescue)}
                       >
                         View Details
