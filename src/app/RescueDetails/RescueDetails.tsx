@@ -12,18 +12,21 @@ import React, { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import Airtable from 'airtable'
 
+// rescue status is a list of statuses that is the same as the statuses in airtable under the column 'VolunteerStatus' in the Bird Alerts table
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
 
+// type Bird that is a collection of variables from airtable
 interface Bird {
   id: string,
   species: string,
   location: string,
   destination: string,
   status: RescueStatus,
-  rescuerName: string
+  currentVolunteer: string
 }
 
 export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: Bird, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
+    //state variables
     const [location, setLocation] = useState<string>('Des Moines, IA')
     const [birdRescues, setBirdRescues] = useState<Bird[]>([])
     // const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
@@ -40,10 +43,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
     const [formError, setFormError] = useState<string | null>(null)
     const [volunteers, setVolunteers] = useState<any[]>([])
 
+    //connecting to airtable
     const airtable = new Airtable({ apiKey: process.env.NEXT_PUBLIC_AIRTABLE_ACCESS_TOKEN })
     const base = airtable.base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID!)
 
-
+    // colors for the statuses that correpond to the airtable colors in the 'VolunteerStatus' column
     const getStatusColor = (status: RescueStatus) => {
         switch (status) {
           case 'Pending': return 'bg-rose-600 hover:bg-rose-800'
@@ -53,6 +57,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
+      //Change status of VolunteerStatus
       const handleStatusChange = async (newStatus: RescueStatus) => {
         console.log(selectedRescue)
         if (selectedRescue) {
@@ -66,8 +71,10 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               return
             }
 
+            // update airtable column
             await updateRescueInAirtable(selectedRescue.id, updatedFields)
 
+            // update the bird in BirdAlertList so that it has the new status
             const updatedBird = {
               ...selectedRescue,
               ...updatedFields,
@@ -114,6 +121,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
+      // get volunteers based off of the PossibleVolunteers column
       const fetchVolunteers = async () => {
           setIsLoading(true)
           setError(null)
@@ -127,6 +135,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
           } catch (error) {
             console.error('Error fetching bird rescues:', error)
             setError('Failed to fetch bird rescues. Please try again later.')
+
           }
           setIsLoading(false)
         }
@@ -175,13 +184,12 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </div>
                 )
         }
-
-
-
-        function populateNameOptions() {
-            const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
-
-            const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
+        
+      // this is what actually populates the list        
+      function populateNameOptions() {            
+          const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
+  
+          const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
               return (
                   <option key={index} value={vol.name}>
                         {vol.name}
@@ -266,8 +274,10 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </a>
               </div>
               <div className="flex items-center bg-stone-50 p-3 rounded-md">
+
                 <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
+                <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
+
                 {/* <span className="text-stone-700">{rescue.distance}</span> */}
               </div>
             </div>
