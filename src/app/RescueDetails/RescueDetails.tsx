@@ -1,13 +1,16 @@
-'use client'
-
 import { MapPinIcon, BirdIcon, TruckIcon, HomeIcon, CheckCircleIcon, MoreHorizontalIcon, UserIcon, ListIcon, MapIcon, ArrowLeftIcon, NavigationIcon, ChevronUpIcon, ChevronDownIcon, ShieldIcon, FilterIcon, XIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { useEffect, useState } from 'react'
-import Airtable from 'airtable'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+import React, { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, useEffect, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+// import { Button } from '@/components/ui/button'
+// import { Badge } from '@/components/ui/badge'
+// import { useEffect, useState } from 'react'
+import Airtable from 'airtable'
+// import { Label } from '@/components/ui/label'
+// import { Input } from '@/components/ui/input'
+
 
 
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
@@ -70,7 +73,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               ...selectedRescue,
               ...updatedFields,
             }
-            setBirdRescues(birdRescues.map(bird => 
+            setBirdRescues(birdRescues.map((bird: { id: any }) => 
               bird.id === selectedRescue.id ? updatedBird : bird
             ))
             setSelectedRescue(updatedBird)
@@ -112,7 +115,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
             setError(null)
             try {
               const records = await base('Rescue and Transport Team').select().all()
-              const volunteers = records.map((record) => ({
+              const volunteers = records.map((record: any) => ({
                 id: record.get('_id') as string,
                 name: record.get('Name') as string
               }))
@@ -179,9 +182,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         
         
         function populateNameOptions() {            
-            const volunteerOptions = volunteers.filter((vol) => selectedRescue.possibleVolunteers.includes(vol.id))
+            const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
     
-            const volunteerOptionElements = volunteerOptions.map((vol) => {
+            const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}) => {
                 return (
                     <option>
                         {vol.name}
