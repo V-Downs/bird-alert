@@ -184,7 +184,7 @@ export default function BirdRescueApp() {
                     </CardContent>
                     <CardFooter className="bg-stone-50 p-4">
                       <Button 
-                        className="w-full bg-lime-700 hover:bg-lime-900 text-white"
+                        className="inline-flex w-full	 items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-black"
                         onClick={() => setSelectedRescue(rescue)}
                       >
                         View Details
