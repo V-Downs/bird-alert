@@ -36,9 +36,9 @@ export default function BirdAlertList() {
 
     const getStatusColor = (status: RescueStatus) => {
         switch (status) {
-          case 'Pending': return 'bg-lime-600'
-          case 'In Route': return 'bg-red-700'
-          case 'Rescued': return 'bg-emerald-700'
+          case 'Pending': return 'bg-rose-600 hover:bg-rose-800'
+          case 'In Route': return 'bg-amber-600 hover:bg-amber-800'
+          case 'Rescued': return 'bg-violet-700 hover:bg-violet-800'
           case 'Delivered': return 'bg-teal-700'
         }
       }
@@ -73,19 +73,19 @@ export default function BirdAlertList() {
     
 
     return (
-        <div className="p-4 space-y-4">
-      <Card className="mb-4 bg-gradient-to-r from-lime-700 to-lime-900 text-white">
-        <CardHeader>
-          <CardTitle className="text-xl md:text-2xl font-bold">Iowa Bird Rescue</CardTitle>
-        </CardHeader>
+        <div className="space-y-4">
+      <Card className="bg-fill bg-center text-white rounded-none" style={{ backgroundImage: "url('../images/birds.jpg')" }}>
+       
+          <CardTitle className="text-2xl font-bold px-8 pt-12 pb-2">Iowa Bird Rehabilitation</CardTitle>
+        
         <CardContent>
-          <div className="flex items-center text-sm">
+          <div className="flex items-center text-sm text-stone-300 pb-6">
             <MapPinIcon className="mr-2 h-4 w-4" />
             <span>My Location: {location}</span>
           </div>
         </CardContent>
       </Card>
-
+      <div className="space-y-4 px-8 py-4">
       {selectedRescue ? (
         <RescueDetails rescue={selectedRescue} onBack={() => setSelectedRescue(null)} selectedRescue={selectedRescue} setSelectedRescue={setSelectedRescue} fetchBirdRescues={fetchBirdRescues}/>
       ) : (
@@ -152,6 +152,7 @@ export default function BirdAlertList() {
           </CardContent>
         </Card>
       )}
+    </div>
     </div>
     )
 }
