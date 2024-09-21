@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import Airtable from 'airtable'
 import { useRouter } from "next/navigation";
 import Link from 'next/link'
-import BirdAlertList from './BirdAlertList/page'
+import BirdAlertList from './BirdAlertList/BirdAlertList'
 
 
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
