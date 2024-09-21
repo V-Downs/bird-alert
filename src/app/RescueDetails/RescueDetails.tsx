@@ -22,7 +22,8 @@ interface Bird {
   location: string,
   destination: string,
   status: RescueStatus,
-  currentVolunteer: string
+  currentVolunteer: string,
+  photo: { url: string, width: number, height: number },
 }
 
 export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: Bird, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
@@ -184,11 +185,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </div>
                 )
         }
-        
-      // this is what actually populates the list        
-      function populateNameOptions() {            
+
+      // this is what actually populates the list
+      function populateNameOptions() {
           const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
-  
+
           const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
               return (
                   <option key={index} value={vol.name}>
@@ -248,41 +249,45 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="px-4 py-4 space-y-4">
-            {/* <img
-              src={rescue.image}
-              alt={rescue.species}
-              className="w-full h-48 object-cover rounded-md shadow-md"
-            /> */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
-                <div className="flex items-center overflow-hidden">
-                  <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                  <span className="text-stone-700 truncate">{rescue.location}</span>
-                </div>
-                <a href={`https://maps.google.com/?q=${rescue.location}`} target='_blank' rel="noopener noreferrer">
-                  Directions
-                </a>
-              </div>
-              <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
-                <div className="flex items-center overflow-hidden">
-                  <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                  <span className="text-stone-700 truncate">{rescue.destination}</span>
-                </div>
-                <a href={`https://maps.google.com/?q=${rescue.destination}`} target='_blank' rel="noopener noreferrer">
-                  Directions
-                </a>
-              </div>
-              <div className="flex items-center bg-stone-50 p-3 rounded-md">
+            <CardContent className="px-4 py-4 space-y-4">
+                <img
+                    src={rescue.photo['url']}
+                    width={rescue.photo['width']}
+                    height={rescue.photo['height']}
+                    alt={rescue.species}
+                    className="rounded-md shadow-md"/>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
+                        <div className="flex items-center overflow-hidden">
+                            <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500"/>
+                            <span className="text-stone-700 truncate">{rescue.location}</span>
+                        </div>
+                        <a href={`https://maps.google.com/?q=${rescue.location}`} target='_blank'
+                           rel="noopener noreferrer">
+                            Directions
+                        </a>
+                    </div>
+                    <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
+                        <div className="flex items-center overflow-hidden">
+                            <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500"/>
+                            <span className="text-stone-700 truncate">{rescue.destination}</span>
+                        </div>
+                        <a href={`https://maps.google.com/?q=${rescue.destination}`} target='_blank'
+                           rel="noopener noreferrer">
+                            Directions
+                        </a>
+                    </div>
+                    <div className="flex items-center bg-stone-50 p-3 rounded-md">
 
-                <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
+                        <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500"/>
+                        <span>Current Volunteer: <span
+                            className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
 
-                {/* <span className="text-stone-700">{rescue.distance}</span> */}
-              </div>
-            </div>
-            <div className="space-y-4">
-              {/* <DropdownMenu>
+                        {/* <span className="text-stone-700">{rescue.distance}</span> */}
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    {/* <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
                     <MoreHorizontalIcon className="mr-2 h-4 w-4" />
@@ -297,27 +302,32 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu> */}
-              {
-                showAcceptForm &&
-                acceptForm()
-              }
-              {rescue.status === 'Pending' && (
-                <Button className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200" onClick={handleAcceptClick}>
-                  Accept Rescue
-                </Button>
-              )}
-              {rescue.status === 'In Route' && (
-                <Button className="w-full bg-red-700 hover:bg-red-800 text-white transition-colors duration-200" onClick={() => handleStatusChange('Rescued')}>
-                  Mark as rescued
-                </Button>
-              )}
-              {rescue.status === 'Rescued' && (
-                <Button className="w-full bg-emerald-700 hover:bg-emerald-800 text-white transition-colors duration-200" onClick={() => handleStatusChange('Delivered')}>
-                  Mark as Delivered
-                </Button>
-              )}
-            </div>
-          </CardContent>
+                    {
+                        showAcceptForm &&
+                        acceptForm()
+                    }
+                    {rescue.status === 'Pending' && (
+                        <Button
+                            className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200"
+                            onClick={handleAcceptClick}>
+                            Accept Rescue
+                        </Button>
+                    )}
+                    {rescue.status === 'In Route' && (
+                        <Button className="w-full bg-red-700 hover:bg-red-800 text-white transition-colors duration-200"
+                                onClick={() => handleStatusChange('Rescued')}>
+                            Mark as rescued
+                        </Button>
+                    )}
+                    {rescue.status === 'Rescued' && (
+                        <Button
+                            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white transition-colors duration-200"
+                            onClick={() => handleStatusChange('Delivered')}>
+                            Mark as Delivered
+                        </Button>
+                    )}
+                </div>
+            </CardContent>
         </Card>
       </div>
     )

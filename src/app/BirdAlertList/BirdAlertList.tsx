@@ -28,7 +28,8 @@ interface Bird {
   destination: string,
   status: RescueStatus,
   possibleVolunteers: object[],
-  currentVolunteer: string
+  currentVolunteer: string,
+  photo: { url: string, width: number, height: number },
 }
 
 export default function BirdAlertList() {
@@ -73,7 +74,8 @@ export default function BirdAlertList() {
             destination: record.get('Drop Off Address') as string,
             status: record.get('VolunteerStatus') as RescueStatus,
             possibleVolunteers: record.get("Possible Volunteers") as object[],
-            currentVolunteer: record.get("CurrentVolunteer") as string
+            currentVolunteer: record.get("CurrentVolunteer") as string,
+            photo: record.get('Bird Photo') ? ((record.get('Bird Photo') as object[])[0] as { url: string, width: number, height: number }) : {}as { url: string, width: number, height: number },
           }))
 
           //sets state variable
