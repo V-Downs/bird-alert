@@ -14,19 +14,12 @@ import Airtable from 'airtable'
 
 export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: BirdAlert, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
     //state variables
-    const [location, setLocation] = useState<string>('Des Moines, IA')
     const [birdRescues, setBirdRescues] = useState<BirdAlert[]>([])
-    // const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
-    const [activeView, setActiveView] = useState<'list' | 'admin'>('list')
-    const [selectedStatuses, setSelectedStatuses] = useState<RescueStatus[]>(['Pending', 'In Route', 'Rescued', 'Delivered'])
-    // const [selectedBirdTypes, setSelectedBirdTypes] = useState<BirdType[]>(['Songbird', 'Raptor', 'Waterfowl', 'Shorebird', 'Other'])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [showAcceptForm, setShowAcceptForm] = useState(false)
     const [rescuerName, setRescuerName] = useState('')
-    const [rescuerPhone, setRescuerPhone] = useState('')
     const [localRescuerName, setLocalRescuerName] = useState(rescuerName)
-    const [localRescuerPhone, setLocalRescuerPhone] = useState(rescuerPhone)
     const [formError, setFormError] = useState<string | null>(null)
     const [volunteers, setVolunteers] = useState<any[]>([])
 
@@ -103,8 +96,6 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
     const handleSubmit = async (e: React.FormEvent) => {
 
-        console.log(selectedRescue.id)
-        // await updateRescueInAirtable(selectedRescue.id, {VolunteerStatus: "In Route"})
         const fields = { CurrentVolunteer: localRescuerName}
         try {
             const updatedRecords = await base('Bird Alerts').update([
@@ -122,89 +113,73 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
       // get volunteers based off of the PossibleVolunteers column
     const fetchVolunteers = async () => {
-          setIsLoading(true)
-          setError(null)
-          try {
-            const records = await base('Rescue and Transport Team').select().all()
-            const volunteers = records.map((record: any) => ({
-              id: record.get('_id') as string,
-              name: record.get('Name') as string
-            }))
-            setVolunteers(volunteers)
-          } catch (error) {
-            console.error('Error fetching bird rescues:', error)
-            setError('Failed to fetch bird rescues. Please try again later.')
-          }
-          setIsLoading(false)
-        }
+      setIsLoading(true)
+      setError(null)
+      try {
+        const records = await base('Rescue and Transport Team').select().all()
+        const volunteers = records.map((record: any) => ({
+          id: record.get('_id') as string,
+          name: record.get('Name') as string
+        }))
+        setVolunteers(volunteers)
+      } catch (error) {
+        console.error('Error fetching bird rescues:', error)
+        setError('Failed to fetch bird rescues. Please try again later.')
+      }
+      setIsLoading(false)
+    }
 
 
-        function acceptForm( ) {
-            return (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowAcceptForm(false)}>
-                    <Card className="w-full max-w-md " onClick={(e) => e.stopPropagation()}>
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Accept Rescue</CardTitle>
-                        <Button variant="ghost" size="icon" onClick={() => setShowAcceptForm(false)}>
-                            <XIcon className="h-4 w-4" />
-                        </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            {/* <Label htmlFor="rescuerName">Your Name</Label>
-                            <Input
-                            id="rescuerName"
-                            value={localRescuerName}
-                            onChange={(e) => setLocalRescuerName(e.target.value)}
-                            required
-                            /> */}
-                            <Label className="block mb-2 text-sm font-medium text-gray-900"> Your Name</Label>
-                            <select required onChange={(e) => setLocalRescuerName(e.target.value)} name='name'
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" >
-                              <option value={""}>-- Please Pick Your Name</option>
-                                {populateNameOptions()}
-                            </select>
-
-
-                        </div>
-
-                        {formError && (
-                            <div className="text-red-500 text-sm">{formError}</div>
-                        )}
-                        <Button disabled={localRescuerName ? false : true}  type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
-                            Accept Rescue
-                        </Button>
-                        </form>
-                    </CardContent>
-                    </Card>
+    function acceptForm( ) {
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowAcceptForm(false)}>
+            <Card className="w-full max-w-md " onClick={(e) => e.stopPropagation()}>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Accept Rescue</CardTitle>
+                <Button variant="ghost" size="icon" onClick={() => setShowAcceptForm(false)}>
+                    <XIcon className="h-4 w-4" />
+                </Button>
                 </div>
-                )
-        }
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                    <Label className="block mb-2 text-sm font-medium text-gray-900"> Your Name</Label>
+                    <select required onChange={(e) => setLocalRescuerName(e.target.value)} name='name'
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" >
+                      <option value={""}>-- Please Pick Your Name</option>
+                        {populateNameOptions()}
+                    </select>
+                </div>
+                {formError && (
+                    <div className="text-red-500 text-sm">{formError}</div>
+                )}
+                <Button disabled={localRescuerName ? false : true}  type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
+                    Accept Rescue
+                </Button>
+                </form>
+            </CardContent>
+            </Card>
+        </div>
+        )
+    }
 
       // this is what actually populates the list
       function populateNameOptions() {
-          const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
+        const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
+        const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
+          return (
+              <option key={index} value={vol.name}>
+                    {vol.name}
+                </option>
+            )
+        })
 
-          const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
-              return (
-                  <option key={index} value={vol.name}>
-                        {vol.name}
-                    </option>
-                )
-            })
-
-            return volunteerOptionElements
-        }
-
-
-
-
+        return volunteerOptionElements
+      }
 
       const updateRescueInAirtable = async (id: string, fields: any) => {
-        // console.log('Updating Airtable record:', id, 'with fields:', fields)
         try {
           const updatedRecords = await base('Bird Alerts').update([
             {
@@ -220,12 +195,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
-
-
     useEffect(() => {
         fetchVolunteers()
     }, [])
-
 
     return (
       <div className="p-4">
@@ -239,7 +211,6 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
           <CardHeader className="bg-stone-100 border-b border-stone-200 px-4 py-2">
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center">
-                {/* <span className="mr-2 text-2xl">{getBirdTypeIcon(rescue.birdType)}</span> */}
                 <span className="font-medium text-xl text-stone-700">{rescue.species}</span>
               </div>
               <Badge variant="secondary" className={`${getStatusColor(rescue.status)} text-white`}>
@@ -253,7 +224,8 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                     width={rescue.photo['width']}
                     height={rescue.photo['height']}
                     alt={rescue.species}
-                    className="rounded-md shadow-md"/>
+                    className="rounded-md shadow-md w-full lg:w-2/4 float-left lg:mr-8
+                    lg:mb-8"/>
                 <Badge variant="secondary" className={`${getRTLevelColor(rescue.rtLevel)} text-white`}>
                     {rescue.rtLevel}
                 </Badge>
@@ -287,25 +259,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
                 <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
 
-                        {/* <span className="text-stone-700">{rescue.distance}</span> */}
                     </div>
                 </div>
                 <div className="space-y-4">
-                    {/* <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
-                    <MoreHorizontalIcon className="mr-2 h-4 w-4" />
-                    Change Status
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  {(['Pending', 'In Route', 'Pending', 'Rescued'] as RescueStatus[]).map((status) => (
-                    <DropdownMenuItem key={status} onSelect={() => handleStatusChange(status)}>
-                      {status}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu> */}
                     {
                         showAcceptForm &&
                         acceptForm()
