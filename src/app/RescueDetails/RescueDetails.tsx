@@ -39,10 +39,10 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
       const getRTLevelColor = (level: RTLevel) => {
           switch (level) {
-              case 'Green: songbirds & babies': return 'bg-green-600'
-              case 'Yellow: geese, ducks and swans': return 'bg-yellow-600'
-              case 'Red: herons, bats': return 'bg-red-600'
-              case 'Purple: raptors': return 'bg-purple-600'
+              case 'Green: songbirds & babies': return 'bg-green-600 hover:bg-green-800'
+              case 'Yellow: geese, ducks and swans': return 'bg-yellow-600 hover:bg-yellow-800'
+              case 'Red: herons, bats': return 'bg-red-600 hover:bg-red-800'
+              case 'Purple: raptors': return 'bg-purple-600 hover:bg-purple-800'
           }
       }
 
