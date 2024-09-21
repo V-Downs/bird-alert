@@ -27,7 +27,6 @@ interface Bird {
   location: string,
   destination: string,
   status: RescueStatus,
-  rescuerName: string,
   possibleVolunteers: object[],
   currentVolunteer: string
 }
@@ -73,7 +72,6 @@ export default function BirdAlertList() {
             location: record.get('Full Pick Up Address') as string,
             destination: record.get('Drop Off Address') as string,
             status: record.get('VolunteerStatus') as RescueStatus,
-            rescuerName: record.get('Current Volunteer') as string,
             possibleVolunteers: record.get("Possible Volunteers") as object[],
             currentVolunteer: record.get("CurrentVolunteer") as string
           }))
@@ -140,7 +138,7 @@ export default function BirdAlertList() {
                                 <CommandGroup>
                                     {allStatuses.map((framework) => (
                                         <CommandItem
-                                            onSelect={(currentValue) => {
+                                            onSelect={(currentValue: any) => {
                                                     const newValue = new Set(value)
                                                     if (newValue.has(framework)) {
                                                         newValue.delete(framework)
@@ -210,7 +208,7 @@ export default function BirdAlertList() {
                         <div className="flex items-center text-sm text-stone-600">
                           <UserCircle className="mr-2 h-4 w-4 flex-shrink-0" />
                           {/* <span>{rescue.distance}</span> */}
-                          <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
+                          <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
                         </div>
                       </div>
                     </CardContent>

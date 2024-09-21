@@ -22,7 +22,7 @@ interface Bird {
   location: string,
   destination: string,
   status: RescueStatus,
-  rescuerName: string
+  currentVolunteer: string
 }
 
 export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: Bird, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
@@ -274,8 +274,10 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </a>
               </div>
               <div className="flex items-center bg-stone-50 p-3 rounded-md">
+
                 <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
+                <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
+
                 {/* <span className="text-stone-700">{rescue.distance}</span> */}
               </div>
             </div>
