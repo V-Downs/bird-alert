@@ -224,7 +224,8 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                     width={rescue.photo['width']}
                     height={rescue.photo['height']}
                     alt={rescue.species}
-                    className="rounded-md shadow-md"/>
+                    className="rounded-md shadow-md w-full lg:w-2/4 float-left lg:mr-8
+                    lg:mb-8"/>
                 <Badge variant="secondary" className={`${getRTLevelColor(rescue.rtLevel)} text-white`}>
                     {rescue.rtLevel}
                 </Badge>

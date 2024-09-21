@@ -166,7 +166,7 @@ export default function BirdAlertList() {
                 <p>{error}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-4 lg:auto-cols-max md:grid-cols-2 lg:grid-cols-3">
                 {birdRescues.filter(bird =>
                   value.has(bird.status)
                 ).sort((a, b) => {
