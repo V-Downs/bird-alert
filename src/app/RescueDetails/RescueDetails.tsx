@@ -59,7 +59,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
       //Change status of VolunteerStatus
       const handleStatusChange = async (newStatus: RescueStatus) => {
-        console.log(selectedRescue)
+        
         if (selectedRescue) {
           setIsLoading(true)
           try {
@@ -72,7 +72,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
             }
 
             // update airtable column
-            await updateRescueInAirtable(selectedRescue.id, updatedFields)
+            if (selectedRescue.currentVolunteer) {
+              await updateRescueInAirtable(selectedRescue.id, updatedFields)
+            }            
 
             // update the bird in BirdAlertList so that it has the new status
             const updatedBird = {
@@ -105,8 +107,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
       const handleSubmit = async (e: React.FormEvent) => {
 
-        console.log(selectedRescue.id)
-        const fields = { CurrentVolunteer: localRescuerName}
+
+        // await updateRescueInAirtable(selectedRescue.id, {VolunteerStatus: "In Route"})
+        const fields = { CurrentVolunteer: localRescuerName, VolunteerStatus: "In Route"}
         try {
           const updatedRecords = await base('Bird Alerts').update([
             {
@@ -165,7 +168,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                             /> */}
                             <Label> Your Name</Label>
                             <select required onChange={(e) => setLocalRescuerName(e.target.value)} name='name'>
-                              <option disabled selected>-- Please Pick Your Name</option>
+                              <option value={""}>-- Please Pick Your Name</option>
                                 {populateNameOptions()}
                             </select>
 
