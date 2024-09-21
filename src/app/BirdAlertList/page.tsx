@@ -54,8 +54,8 @@ export default function BirdAlertList() {
             location: record.get('Full Pick Up Address') as string,
             destination: record.get('Drop Off Address') as string,
             status: record.get('VolunteerStatus') as RescueStatus,
-            rescuerName: record.get('Current Volunteer') as string
-    
+            rescuerName: record.get('Current Volunteer') as string,
+            possibleVolunteers: record.get("Possible Volunteers") as object[]
           }))
           setBirdRescues(rescues)
         } catch (error) {
@@ -65,11 +65,11 @@ export default function BirdAlertList() {
         setIsLoading(false)
       }
     
-    
+    console.log(birdRescues)
 
-      useEffect(() => {
-        fetchBirdRescues()
-      }, [])
+    useEffect(() => {
+    fetchBirdRescues()
+    }, [])
     
 
     return (
