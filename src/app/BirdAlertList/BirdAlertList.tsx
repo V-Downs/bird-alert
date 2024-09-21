@@ -111,7 +111,7 @@ export default function BirdAlertList() {
           </div>
         </CardContent>
       </Card>
-      <div className="space-y-4 px-4 py-2">
+      <div>
       {selectedRescue ? (
         <RescueDetails rescue={selectedRescue} onBack={() => setSelectedRescue(null)} selectedRescue={selectedRescue} setSelectedRescue={setSelectedRescue} fetchBirdRescues={fetchBirdRescues}/>
       ) : (
@@ -125,15 +125,15 @@ export default function BirdAlertList() {
                             variant="outline"
                             role="combobox"
                             aria-expanded={isFilterOpen}
-                            className="w-[200px] justify-between"
+                            className=" mt-2 w-full justify-between"
                         >
                             {value
                                 ? Array.from(value).join(',')
                                 : "Select framework..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            <ChevronsUpDown className="ml-2 h-4 w-8 shrink-0 opacity-50" />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="sm:w-[500px] p-0">
                         <Command>
                             <CommandInput placeholder="Select statuses..." />
                             <CommandList>
