@@ -2,8 +2,10 @@ import { MapPinIcon, BirdIcon, TruckIcon, HomeIcon, CheckCircleIcon, MoreHorizon
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Airtable from 'airtable'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
@@ -29,6 +31,10 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
     const [showAcceptForm, setShowAcceptForm] = useState(false)
     const [rescuerName, setRescuerName] = useState('')
     const [rescuerPhone, setRescuerPhone] = useState('')
+    const [localRescuerName, setLocalRescuerName] = useState(rescuerName)
+    const [localRescuerPhone, setLocalRescuerPhone] = useState(rescuerPhone)
+    const [formError, setFormError] = useState<string | null>(null)
+    const [volunteers, setVolunteers] = useState<any[]>([])
 
     const airtable = new Airtable({ apiKey: process.env.NEXT_PUBLIC_AIRTABLE_ACCESS_TOKEN })
     const base = airtable.base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID!)
@@ -72,11 +78,120 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
             setError('Failed to update rescue status. Please try again.')
           }
           setIsLoading(false)
-          setSelectedRescue(null)
+          if (newStatus !== "In Route") {
+            setSelectedRescue(null)
+          }
+        
           fetchBirdRescues()
         }
         
       }  
+
+      function handleAcceptClick() {
+        setShowAcceptForm(true)
+        handleStatusChange('In Route');
+      }
+
+      const handleSubmit = async (e: React.FormEvent) => {
+        // e.preventDefault()
+        // setFormError(null)
+        // try {
+        //     // await handleAcceptSubmit(e)
+        //     setRescuerName(localRescuerName)
+        //     setRescuerPhone(localRescuerPhone)
+        // } catch (error) {
+        //     console.error('Error in form submission:', error)
+        //     setFormError('Failed to submit form. Please try again.')
+        // }
+        }
+
+        const fetchVolunteers = async () => {
+            setIsLoading(true)
+            setError(null)
+            try {
+              const records = await base('Rescue and Transport Team').select().all()
+              const volunteers = records.map((record) => ({
+                id: record.get('_id') as string,
+                name: record.get('Name') as string
+              }))
+              setVolunteers(volunteers)
+            } catch (error) {
+              console.error('Error fetching bird rescues:', error)
+              setError('Failed to fetch bird rescues. Please try again later.')
+            }
+            setIsLoading(false)
+          }
+
+        
+        function acceptForm( ) {
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowAcceptForm(false)}>
+                    <Card className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                    <CardHeader>
+                        <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Accept Rescue</CardTitle>
+                        <Button variant="ghost" size="icon" onClick={() => setShowAcceptForm(false)}>
+                            <XIcon className="h-4 w-4" />
+                        </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            {/* <Label htmlFor="rescuerName">Your Name</Label>
+                            <Input
+                            id="rescuerName"
+                            value={localRescuerName}
+                            onChange={(e) => setLocalRescuerName(e.target.value)}
+                            required
+                            /> */}
+                            <Label> Your Name</Label>
+                            <select>
+                                {populateNameOptions()}
+                            </select>
+                                  
+                                
+                        </div>
+                        <div className="space-y-2">
+                            {/* <Label htmlFor="rescuerPhone">Your Phone Number</Label>
+                            <Input
+                            id="rescuerPhone"
+                            value={localRescuerPhone}
+                            onChange={(e) => setLocalRescuerPhone(e.target.value)}
+                            required
+                            /> */}
+                        </div>
+                        {formError && (
+                            <div className="text-red-500 text-sm">{formError}</div>
+                        )}
+                        <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
+                            Accept Rescue
+                        </Button>
+                        </form>
+                    </CardContent>
+                    </Card>
+                </div>
+                )
+        }
+
+        
+        
+        function populateNameOptions() {            
+            const volunteerOptions = volunteers.filter((vol) => selectedRescue.possibleVolunteers.includes(vol.id))
+    
+            const volunteerOptionElements = volunteerOptions.map((vol) => {
+                return (
+                    <option>
+                        {vol.name}
+                    </option>
+                )
+            })
+        
+            return volunteerOptionElements
+        }
+
+       
+    
 
     //   const fetchBirdRescues = async () => {
     //     setIsLoading(true)
@@ -116,6 +231,12 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
           throw error
         }
       }
+
+      
+
+    useEffect(() => {
+        fetchVolunteers()
+    }, [])
     
 
     return (
@@ -149,15 +270,6 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
                 <span className="text-stone-700 truncate">{rescue.location}</span>
               </div>
-              {/* <Button 
-                variant="link" 
-                size="sm" 
-                className="text-lime-600 hover:text-lime-700 transition-colors duration-200 whitespace-nowrap"
-                onClick={() => console.log(`Getting directions to: ${rescue.location}`)}
-              >
-                <NavigationIcon className="mr-1 h-4 w-4" />
-                Directions
-              </Button> */}
               <a href={`https://maps.google.com/?q=${rescue.location}` } target='_blank'>
                     Directions
               </a>
@@ -167,15 +279,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
                 <span className="text-stone-700 truncate">{rescue.destination}</span>
               </div>
-              {/* <Button 
-                variant="link" 
-                size="sm" 
-                className="text-lime-600 hover:text-lime-700 transition-colors duration-200 whitespace-nowrap"
-                onClick={() => console.log(`Getting directions to: ${rescue.destination}`)}
-              >
-                <NavigationIcon className="mr-1 h-4 w-4" />
-                Directions
-              </Button> */}
+
 
               <a href={`https://maps.google.com/?q=${rescue.destination}` } target='_blank'>
                     Directions
@@ -204,8 +308,12 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 ))}
               </DropdownMenuContent>
             </DropdownMenu> */}
+            {
+                showAcceptForm && 
+                acceptForm()
+            }
             {rescue.status === 'Pending' && (
-              <Button className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200" onClick={() => handleStatusChange('In Route')}>
+              <Button className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200" onClick={handleAcceptClick}>
                 Accept Rescue
               </Button>
             )}
