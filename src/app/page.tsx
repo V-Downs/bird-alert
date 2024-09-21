@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MapPinIcon, BirdIcon, TruckIcon, HomeIcon, CheckCircleIcon, MoreHorizontalIcon, UserIcon, ListIcon, MapIcon, ArrowLeftIcon, NavigationIcon, ChevronUpIcon, ChevronDownIcon, ShieldIcon, FilterIcon } from 'lucide-react'
+import { MapPinIcon, BirdIcon, TruckIcon, HomeIcon, CheckCircleIcon, MoreHorizontalIcon, UserIcon, ListIcon, MapIcon, ArrowLeftIcon, NavigationIcon, ChevronUpIcon, ChevronDownIcon, ShieldIcon, FilterIcon, XIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +24,8 @@ interface Bird {
   distance: string
   status: RescueStatus
   image: string
+  rescuerName?: string
+  rescuerPhone?: string
 }
 
 const getBirdTypeIcon = (birdType: BirdType) => {
@@ -32,7 +34,7 @@ const getBirdTypeIcon = (birdType: BirdType) => {
     case 'Raptor': return '🦅'
     case 'Waterfowl': return '🦆'
     case 'Shorebird': return '🐧'
-    case 'Other': return '🦃'
+    case 'Other': return '🐤'
   }
 }
 
@@ -49,6 +51,9 @@ export default function BirdRescueApp() {
   const [selectedBirdTypes, setSelectedBirdTypes] = useState<BirdType[]>(['Songbird', 'Raptor', 'Waterfowl', 'Shorebird', 'Other'])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showAcceptForm, setShowAcceptForm] = useState(false)
+  const [rescuerName, setRescuerName] = useState('')
+  const [rescuerPhone, setRescuerPhone] = useState('')
 
   useEffect(() => {
     fetchBirdRescues()
@@ -68,6 +73,8 @@ export default function BirdRescueApp() {
         distance: record.get('distance') as string,
         status: record.get('status') as RescueStatus,
         image: record.get('image') as string,
+        rescuerName: record.get('rescuerName') as string,
+        rescuerPhone: record.get('rescuerPhone') as string,
       }))
       setBirdRescues(rescues)
     } catch (error) {
@@ -81,18 +88,19 @@ export default function BirdRescueApp() {
     if (selectedRescue) {
       setIsLoading(true)
       try {
-        await base('Bird Rescues').update([
-          {
-            id: selectedRescue.id,
-            fields: {
-              status: newStatus,
-            }
-          }
-        ])
+        const updatedFields: Partial<Bird> = { status: newStatus }
+        
+        if (newStatus === 'Accepted') {
+          setShowAcceptForm(true)
+          setIsLoading(false)
+          return
+        }
+
+        await updateRescueInAirtable(selectedRescue.id, updatedFields)
 
         const updatedBird = {
           ...selectedRescue,
-          status: newStatus,
+          ...updatedFields,
         }
         setBirdRescues(birdRescues.map(bird => 
           bird.id === selectedRescue.id ? updatedBird : bird
@@ -107,9 +115,50 @@ export default function BirdRescueApp() {
     }
   }
 
+  const updateRescueInAirtable = async (id: string, fields: Partial<Bird>) => {
+    await base('Bird Rescues').update([
+      {
+        id,
+        fields: fields as any,
+      }
+    ])
+  }
+
+  const handleAcceptSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (selectedRescue) {
+      setIsLoading(true)
+      try {
+        const updatedFields: Partial<Bird> = {
+          status: 'Accepted',
+          rescuerName,
+          rescuerPhone,
+        }
+
+        await updateRescueInAirtable(selectedRescue.id, updatedFields)
+
+        const updatedBird = {
+          ...selectedRescue,
+          ...updatedFields,
+        }
+        setBirdRescues(birdRescues.map(bird => 
+          bird.id === selectedRescue.id ? updatedBird : bird
+        ))
+        setSelectedRescue(updatedBird)
+        setShowAcceptForm(false)
+        setRescuerName('')
+        setRescuerPhone('')
+      } catch (error) {
+        console.error('Error accepting rescue:', error)
+        setError('Failed to accept rescue. Please try again.')
+      }
+      setIsLoading(false)
+    }
+  }
+
   const getStatusColor = (status: RescueStatus) => {
     switch (status) {
-      case 'Available': return 'bg-amber-600'
+      case 'Available': return 'bg-lime-600'
       case 'Accepted': return 'bg-orange-600'
       case 'En Route': return 'bg-red-700'
       case 'Delivered - Rehabilitating': return 'bg-emerald-700'
@@ -117,11 +166,51 @@ export default function BirdRescueApp() {
     }
   }
 
+  const AcceptForm = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Accept Rescue</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => setShowAcceptForm(false)}>
+              <XIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleAcceptSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="rescuerName">Your Name</Label>
+              <Input
+                id="rescuerName"
+                value={rescuerName}
+                onChange={(e) => setRescuerName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rescuerPhone">Your Phone Number</Label>
+              <Input
+                id="rescuerPhone"
+                value={rescuerPhone}
+                onChange={(e) => setRescuerPhone(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
+              Accept Rescue
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+
   const ListView = () => (
     <div className="p-4 space-y-4">
       <Card className="mb-4 bg-gradient-to-r from-lime-700 to-lime-900 text-white">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Iowa Bird Rescue</CardTitle>
+          <CardTitle className="text-xl md:text-2xl font-bold">Iowa Bird Rescue</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center text-sm">
@@ -136,20 +225,20 @@ export default function BirdRescueApp() {
       ) : (
         <Card className="bg-white shadow-lg rounded-lg overflow-hidden">
           <CardHeader className="bg-stone-100 border-b border-stone-200">
-            <CardTitle className="text-xl font-semibold text-stone-800">Available Rescues</CardTitle>
+            <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Available Rescues</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             <FilterOptions />
             {isLoading ? (
               <div className="flex justify-center items-center h-32">
-                <div className="w-8 h-8 border-t-2 border-amber-500 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-t-2 border-lime-500 rounded-full animate-spin" />
               </div>
             ) : error ? (
               <div className="flex justify-center items-center h-32 text-red-500">
                 <p>{error}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {birdRescues.filter(bird => 
                   selectedStatuses.includes(bird.status) &&
                   selectedBirdTypes.includes(bird.birdType)
@@ -169,22 +258,22 @@ export default function BirdRescueApp() {
                     <CardContent className="p-4">
                       <div className="space-y-2">
                         <div className="flex items-center text-sm text-stone-600">
-                          <MapPinIcon className="mr-2 h-4 w-4" />
-                          <span>{rescue.location}</span>
+                          <MapPinIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{rescue.location}</span>
                         </div>
                         <div className="flex items-center text-sm text-stone-600">
-                          <HomeIcon className="mr-2 h-4 w-4" />
-                          <span>{rescue.destination}</span>
+                          <HomeIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{rescue.destination}</span>
                         </div>
                         <div className="flex items-center text-sm text-stone-600">
-                          <TruckIcon className="mr-2 h-4 w-4" />
+                          <TruckIcon className="mr-2 h-4 w-4 flex-shrink-0" />
                           <span>{rescue.distance}</span>
                         </div>
                       </div>
                     </CardContent>
                     <CardFooter className="bg-stone-50 p-4">
                       <Button 
-                        className="inline-flex w-full	 items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-black"
+                        className="w-full bg-lime-600 hover:bg-lime-700 text-white"
                         onClick={() => setSelectedRescue(rescue)}
                       >
                         View Details
@@ -202,10 +291,10 @@ export default function BirdRescueApp() {
 
   const FilterOptions = () => (
     <div className="space-y-4 mb-4">
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
+            <Button variant="outline" className="w-full sm:w-auto bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
               <FilterIcon className="mr-2 h-4 w-4" />
               Filter by Status
             </Button>
@@ -228,7 +317,7 @@ export default function BirdRescueApp() {
         </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
+            <Button variant="outline" className="w-full sm:w-auto bg-white hover:bg-stone-50 transition-colors duration-200 ease-in-out">
               <FilterIcon className="mr-2 h-4 w-4" />
               Filter by Bird Type
             </Button>
@@ -260,7 +349,7 @@ export default function BirdRescueApp() {
           <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
             <ArrowLeftIcon className="h-4 w-4" />
           </Button>
-          <CardTitle className="text-xl font-semibold text-stone-800">Rescue Details</CardTitle>
+          <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Rescue Details</CardTitle>
         </div>
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center">
@@ -280,14 +369,14 @@ export default function BirdRescueApp() {
         />
         <div className="space-y-4">
           <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
-            <div className="flex items-center">
-              <MapPinIcon className="mr-2 h-5 w-5 text-stone-500" />
-              <span className="text-stone-700">{rescue.location}</span>
+            <div className="flex items-center overflow-hidden">
+              <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
+              <span className="text-stone-700 truncate">{rescue.location}</span>
             </div>
             <Button 
               variant="link" 
               size="sm" 
-              className="text-amber-600 hover:text-amber-700 transition-colors duration-200"
+              className="text-lime-600 hover:text-lime-700 transition-colors duration-200 whitespace-nowrap"
               onClick={() => console.log(`Getting directions to: ${rescue.location}`)}
             >
               <NavigationIcon className="mr-1 h-4 w-4" />
@@ -295,14 +384,14 @@ export default function BirdRescueApp() {
             </Button>
           </div>
           <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
-            <div className="flex items-center">
-              <HomeIcon className="mr-2 h-5 w-5 text-stone-500" />
-              <span className="text-stone-700">{rescue.destination}</span>
+            <div className="flex items-center overflow-hidden">
+              <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
+              <span className="text-stone-700 truncate">{rescue.destination}</span>
             </div>
             <Button 
               variant="link" 
               size="sm" 
-              className="text-amber-600 hover:text-amber-700 transition-colors duration-200"
+              className="text-lime-600 hover:text-lime-700 transition-colors duration-200 whitespace-nowrap"
               onClick={() => console.log(`Getting directions to: ${rescue.destination}`)}
             >
               <NavigationIcon className="mr-1 h-4 w-4" />
@@ -310,7 +399,7 @@ export default function BirdRescueApp() {
             </Button>
           </div>
           <div className="flex items-center bg-stone-50 p-3 rounded-md">
-            <TruckIcon className="mr-2 h-5 w-5 text-stone-500" />
+            <TruckIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
             <span className="text-stone-700">{rescue.distance}</span>
           </div>
         </div>
@@ -331,7 +420,7 @@ export default function BirdRescueApp() {
             </DropdownMenuContent>
           </DropdownMenu>
           {rescue.status === 'Available' && (
-            <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white transition-colors duration-200" onClick={() => handleStatusChange('Accepted')}>
+            <Button className="w-full bg-lime-600 hover:bg-lime-700 text-white transition-colors duration-200" onClick={() => handleStatusChange('Accepted')}>
               Accept Rescue
             </Button>
           )}
@@ -424,7 +513,7 @@ export default function BirdRescueApp() {
       <div className="p-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-stone-800">Create New Rescue</CardTitle>
+            <CardTitle className="text-xl md:text-2xl font-bold text-stone-800">Create New Rescue</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -487,7 +576,7 @@ export default function BirdRescueApp() {
               {submitError && (
                 <div className="text-red-500 text-sm">{submitError}</div>
               )}
-              <Button type="submit" className="w-full bg-lime-700 hover:bg-lime-900 text-white" disabled={isSubmitting}>
+              <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white" disabled={isSubmitting}>
                 {isSubmitting ? 'Creating...' : 'Create Rescue'}
               </Button>
             </form>
@@ -498,12 +587,12 @@ export default function BirdRescueApp() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-stone-100">
-      <div className="flex-grow overflow-y-auto">
+    <div className="flex flex-col min-h-screen bg-stone-100">
+      <div className="flex-grow overflow-y-auto pb-16">
         {activeView === 'list' && <ListView />}
         {activeView === 'admin' && <AdminView />}
       </div>
-      <div className="flex justify-around items-center h-16 bg-white border-t shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 bg-white border-t shadow-lg">
         <Button variant="ghost" onClick={() => setActiveView('list')} className="text-stone-600 hover:text-stone-900 transition-colors duration-200">
           <ListIcon className="h-6 w-6" />
         </Button>
@@ -511,6 +600,7 @@ export default function BirdRescueApp() {
           <ShieldIcon className="h-6 w-6" />
         </Button>
       </div>
+      {showAcceptForm && <AcceptForm />}
     </div>
   )
 }
