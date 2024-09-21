@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import RescueDetails from '../RescueDetails/page'
+import RescueDetails from '../RescueDetails/RescueDetails'
 import Airtable from 'airtable'
 
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
