@@ -120,7 +120,8 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
     }
 
-      // get volunteers based off of the PossibleVolunteers columnconst fetchVolunteers = async () => {
+      // get volunteers based off of the PossibleVolunteers column
+    const fetchVolunteers = async () => {
           setIsLoading(true)
           setError(null)
           try {
