@@ -17,8 +17,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import {cn} from "@/lib/utils";
 
+// rescue status is a list of statuses that is the same as the statuses in airtable under the column 'VolunteerStatus' in the Bird Alerts table
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
 
+// type Bird has variables from the airtable database. Rescuer name is the same as the 'Current Volunteer'
 interface Bird {
   id: string,
   species: string,
@@ -29,6 +31,7 @@ interface Bird {
 }
 
 export default function BirdAlertList() {
+    // creates the variables needed to set up the bird alert list
     const [location, setLocation] = useState<string>('Des Moines, IA')
     const [birdRescues, setBirdRescues] = useState<Bird[]>([])
     const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
@@ -39,9 +42,11 @@ export default function BirdAlertList() {
 
     const [isFilterOpen, setIsFilterIsFilterOpen] = useState(false)
 
+    // connection to airtable and the Bird Alert table.
     const airtable = new Airtable({ apiKey: process.env.NEXT_PUBLIC_AIRTABLE_ACCESS_TOKEN })
     const base = airtable.base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID!)
 
+    // colors for status
     const getStatusColor = (status: RescueStatus) => {
         switch (status) {
           case 'Pending': return 'bg-rose-600 hover:bg-rose-800'
@@ -51,11 +56,15 @@ export default function BirdAlertList() {
         }
       }
 
+      // this function collects the records from airtable and converts them to type 'Bird'
       const fetchBirdRescues = async () => {
         setIsLoading(true)
         setError(null)
         try {
+          // airtable fetch
           const records = await base('Bird Alerts').select().all()
+
+          //conversion
           const rescues: Bird[] = records.map((record) => ({
             id: record.get('_id') as string,
             species: record.get('Type of Bird') as string,
@@ -65,6 +74,8 @@ export default function BirdAlertList() {
             rescuerName: record.get('Current Volunteer') as string,
             possibleVolunteers: record.get("Possible Volunteers") as object[]
           }))
+
+          //sets state variable
           setBirdRescues(rescues)
         } catch (error) {
           console.error('Error fetching bird rescues:', error)
