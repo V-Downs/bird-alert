@@ -96,7 +96,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
     const handleSubmit = async (e: React.FormEvent) => {
 
-        const fields = { CurrentVolunteer: localRescuerName}
+        const fields = {CurrentVolunteer: localRescuerName, VolunteerStatus: "In Route"}
         try {
             const updatedRecords = await base('Bird Alerts').update([
                 {
@@ -233,7 +233,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 <div className="">
                     <span className="font-bold text-black">Technical Skills:</span>
                     <ul className="">
-                        {rescue.skills?.map((skill) => <li>{skill}</li>)}
+                        {rescue.skills?.map((skill, index) => <li key={index}>{skill}</li>)}
                     </ul>
                 </div>
 
