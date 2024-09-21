@@ -2,9 +2,8 @@
 
 import {
     MapPinIcon,
-    TruckIcon,
     HomeIcon,
-    ChevronsUpDown
+    ChevronsUpDown, UserCircle
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
@@ -209,7 +208,7 @@ export default function BirdAlertList() {
                           <span className="truncate">{rescue.destination}</span>
                         </div>
                         <div className="flex items-center text-sm text-stone-600">
-                          <TruckIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <UserCircle className="mr-2 h-4 w-4 flex-shrink-0" />
                           {/* <span>{rescue.distance}</span> */}
                           <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
                         </div>
