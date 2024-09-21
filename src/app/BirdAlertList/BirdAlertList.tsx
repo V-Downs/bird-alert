@@ -185,7 +185,7 @@ export default function BirdAlertList() {
                   value.has(bird.status)
                 ).sort((a, b) => {
                     // Show pending rescues first
-                    return a.status == 'Pending' ? -1 : 1
+                    return allStatuses.indexOf(a.status) < allStatuses.indexOf(b.status) ? -1 : 1;
                 }).map(rescue => (
                   <Card key={rescue.id} className="overflow-hidden">
                     <CardHeader className="p-4">
