@@ -86,3 +86,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+.bold-text {
+  font-weight: 700;
+  color: black;
+}
