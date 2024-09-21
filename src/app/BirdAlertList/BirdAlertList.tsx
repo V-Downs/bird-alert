@@ -20,8 +20,8 @@ import {cn} from "@/lib/utils";
 export default function BirdAlertList() {
     // creates the variables needed to set up the bird alert list
     const [location, setLocation] = useState<string>('Des Moines, IA')
-    const [birdRescues, setBirdRescues] = useState<Bird[]>([])
-    const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
+    const [birdRescues, setBirdRescues] = useState<BirdAlert[]>([])
+    const [selectedRescue, setSelectedRescue] = useState<BirdAlert | null>(null)
     const allStatuses = ['Pending', 'In Route', 'Rescued', 'Delivered'] as RescueStatus[];
     const [value, setValue] = useState(new Set<RescueStatus>(['Pending', 'In Route', 'Rescued']))
     const [isLoading, setIsLoading] = useState(true)
@@ -52,13 +52,14 @@ export default function BirdAlertList() {
           const records = await base('Bird Alerts').select().all()
 
           //conversion
-          const rescues: Bird[] = records.map((record) => ({
+          const rescues: BirdAlert[] = records.map((record) => ({
             id: record.get('_id') as string,
             species: record.get('Type of Bird') as string,
             location: record.get('Full Pick Up Address') as string,
             destination: record.get('Drop Off Address') as string,
             status: record.get('VolunteerStatus') as RescueStatus,
             rtLevel: record.get('R&T Level') as RTLevel,
+            skills: record.get('Technical Skills') as Skills[],
             possibleVolunteers: record.get("Possible Volunteers") as object[],
             currentVolunteer: record.get("CurrentVolunteer") as string,
             photo: record.get('Bird Photo') ? ((record.get('Bird Photo') as object[])[0] as { url: string, width: number, height: number }) : {}as { url: string, width: number, height: number },

@@ -12,10 +12,10 @@ import React, { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import Airtable from 'airtable'
 
-export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: Bird, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
+export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: BirdAlert, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
     //state variables
     const [location, setLocation] = useState<string>('Des Moines, IA')
-    const [birdRescues, setBirdRescues] = useState<Bird[]>([])
+    const [birdRescues, setBirdRescues] = useState<BirdAlert[]>([])
     // const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
     const [activeView, setActiveView] = useState<'list' | 'admin'>('list')
     const [selectedStatuses, setSelectedStatuses] = useState<RescueStatus[]>(['Pending', 'In Route', 'Rescued', 'Delivered'])
@@ -254,6 +254,14 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 <Badge variant="secondary" className={`${getRTLevelColor(rescue.rtLevel)} text-white`}>
                     {rescue.rtLevel}
                 </Badge>
+
+                <div className="space-y-4">
+                    Technical Skills:
+                    <ul>
+                        {rescue.skills?.map((skill) => <li>{skill}</li>)}
+                    </ul>
+                </div>
+
                 <div className="space-y-4">
                     <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
                         <div className="flex items-center overflow-hidden">
