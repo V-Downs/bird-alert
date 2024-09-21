@@ -1,35 +1,16 @@
 import {
     MapPinIcon,
-    BirdIcon,
-    TruckIcon,
     HomeIcon,
-    CheckCircleIcon,
-    MoreHorizontalIcon,
-    UserIcon,
-    ListIcon,
-    MapIcon,
     ArrowLeftIcon,
-    NavigationIcon,
-    ChevronUpIcon,
-    ChevronDownIcon,
-    ShieldIcon,
-    FilterIcon,
     XIcon,
     CircleUser
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import React, { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-// import { Button } from '@/components/ui/button'
-// import { Badge } from '@/components/ui/badge'
-// import { useEffect, useState } from 'react'
 import Airtable from 'airtable'
-// import { Label } from '@/components/ui/label'
-// import { Input } from '@/components/ui/input'
-
-
 
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
 
@@ -116,40 +97,45 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
       }
 
       const handleSubmit = async (e: React.FormEvent) => {
-        // e.preventDefault()
-        // setFormError(null)
-        // try {
-        //     // await handleAcceptSubmit(e)
-        //     setRescuerName(localRescuerName)
-        //     setRescuerPhone(localRescuerPhone)
-        // } catch (error) {
-        //     console.error('Error in form submission:', error)
-        //     setFormError('Failed to submit form. Please try again.')
-        // }
-        }
 
-        const fetchVolunteers = async () => {
-            setIsLoading(true)
-            setError(null)
-            try {
-              const records = await base('Rescue and Transport Team').select().all()
-              const volunteers = records.map((record: any) => ({
-                id: record.get('_id') as string,
-                name: record.get('Name') as string
-              }))
-              setVolunteers(volunteers)
-            } catch (error) {
-              console.error('Error fetching bird rescues:', error)
-              setError('Failed to fetch bird rescues. Please try again later.')
+        console.log(selectedRescue.id)
+        const fields = { CurrentVolunteer: localRescuerName}
+        try {
+          const updatedRecords = await base('Bird Alerts').update([
+            {
+              id: selectedRescue.id,
+              fields: fields
             }
-            setIsLoading(false)
+          ])
+          setShowAcceptForm(false)
+          return updatedRecords
+        }catch {
+          throw error
+        }
+      }
+
+      const fetchVolunteers = async () => {
+          setIsLoading(true)
+          setError(null)
+          try {
+            const records = await base('Rescue and Transport Team').select().all()
+            const volunteers = records.map((record: any) => ({
+              id: record.get('_id') as string,
+              name: record.get('Name') as string
+            }))
+            setVolunteers(volunteers)
+          } catch (error) {
+            console.error('Error fetching bird rescues:', error)
+            setError('Failed to fetch bird rescues. Please try again later.')
           }
+          setIsLoading(false)
+        }
 
 
         function acceptForm( ) {
             return (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowAcceptForm(false)}>
-                    <Card className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                    <Card className="w-full max-w-md " onClick={(e) => e.stopPropagation()}>
                     <CardHeader>
                         <div className="flex justify-between items-center">
                         <CardTitle className="text-lg md:text-xl font-semibold text-stone-800">Accept Rescue</CardTitle>
@@ -168,26 +154,19 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                             onChange={(e) => setLocalRescuerName(e.target.value)}
                             required
                             /> */}
-                            <Label> Your Name</Label>
-                            <select>
+                            <Label className="block mb-2 text-sm font-medium text-gray-900"> Your Name</Label>
+                            <select className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required onChange={(e) => setLocalRescuerName(e.target.value)} name='name'>
+                              <option disabled selected>-- Please Pick Your Name</option>
                                 {populateNameOptions()}
                             </select>
 
 
                         </div>
-                        <div className="space-y-2">
-                            {/* <Label htmlFor="rescuerPhone">Your Phone Number</Label>
-                            <Input
-                            id="rescuerPhone"
-                            value={localRescuerPhone}
-                            onChange={(e) => setLocalRescuerPhone(e.target.value)}
-                            required
-                            /> */}
-                        </div>
+
                         {formError && (
                             <div className="text-red-500 text-sm">{formError}</div>
                         )}
-                        <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
+                        <Button disabled={localRescuerName ? false : true}  type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
                             Accept Rescue
                         </Button>
                         </form>
@@ -202,9 +181,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         function populateNameOptions() {
             const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
 
-            const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}) => {
-                return (
-                    <option>
+            const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
+              return (
+                  <option key={index} value={vol.name}>
                         {vol.name}
                     </option>
                 )
@@ -216,27 +195,6 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
 
 
-    //   const fetchBirdRescues = async () => {
-    //     setIsLoading(true)
-    //     setError(null)
-    //     try {
-    //       const records = await base('Bird Alerts').select().all()
-    //       const rescues: Bird[] = records.map(record => ({
-    //         id: record.get('_id') as string,
-    //         species: record.get('Type of Bird') as string,
-    //         location: record.get('Full Pick Up Address') as string,
-    //         destination: record.get('Drop Off Address') as string,
-    //         status: record.get('VolunteerStatus') as RescueStatus,
-    //         rescuerName: record.get('Current Volunteer') as string
-
-    //       }))
-    //       setBirdRescues(rescues)
-    //     } catch (error) {
-    //       console.error('Error fetching bird rescues:', error)
-    //       setError('Failed to fetch bird rescues. Please try again later.')
-    //     }
-    //     setIsLoading(false)
-    //   }
 
       const updateRescueInAirtable = async (id: string, fields: any) => {
         // console.log('Updating Airtable record:', id, 'with fields:', fields)
@@ -263,7 +221,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
 
     return (
-      <div>
+      <div className="p-4">
         <div className="flex items-center">
           <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
             <ArrowLeftIcon className="h-4 w-4" />
@@ -292,20 +250,19 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
               <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
                 <div className="flex items-center overflow-hidden">
                   <MapPinIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                  <span className="text-stone-700 truncate">{rescue.location}</span>
-                </div>
-                <a href={`https://maps.google.com/?q=${rescue.location}`} target='_blank' rel="noopener noreferrer">
-                  Directions
+                  <a href={`https://maps.google.com/?q=${rescue.location}`} target='_blank' rel="noopener noreferrer" className="font-medium text-lime-600 dark:text-lime-500 hover:underline">
+                <span className="float-left truncate hover:underline">{rescue.location}</span>
                 </a>
+                </div>
               </div>
               <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
                 <div className="flex items-center overflow-hidden">
                   <HomeIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
-                  <span className="text-stone-700 truncate">{rescue.destination}</span>
-                </div>
-                <a href={`https://maps.google.com/?q=${rescue.destination}`} target='_blank' rel="noopener noreferrer">
-                  Directions
+                  <a href={`https://maps.google.com/?q=${rescue.destination}`} target='_blank' rel="noopener noreferrer" className="font-medium text-lime-600 dark:text-lime-500 hover:underline">
+                  <span className="float-left truncate hover:underline">{rescue.destination}</span>
                 </a>
+                </div>
+
               </div>
               <div className="flex items-center bg-stone-50 p-3 rounded-md">
                 <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
