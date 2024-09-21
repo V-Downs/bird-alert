@@ -19,7 +19,6 @@ import {cn} from "@/lib/utils";
 
 export default function BirdAlertList() {
     // creates the variables needed to set up the bird alert list
-    const [location, setLocation] = useState<string>('Des Moines, IA')
     const [birdRescues, setBirdRescues] = useState<BirdAlert[]>([])
     const [selectedRescue, setSelectedRescue] = useState<BirdAlert | null>(null)
     const allStatuses = ['Pending', 'In Route', 'Rescued', 'Delivered'] as RescueStatus[];
@@ -197,7 +196,6 @@ export default function BirdAlertList() {
                         </div>
                         <div className="flex items-center text-sm text-stone-600">
                           <UserCircle className="mr-2 h-4 w-4 flex-shrink-0" />
-                          {/* <span>{rescue.distance}</span> */}
                           <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
                         </div>
                       </div>
