@@ -32,7 +32,7 @@ const getBirdTypeIcon = (birdType: BirdType) => {
     case 'Raptor': return '🦅'
     case 'Waterfowl': return '🦆'
     case 'Shorebird': return '🐧'
-    case 'Other': return '🐤'
+    case 'Other': return '🦃'
   }
 }
 
