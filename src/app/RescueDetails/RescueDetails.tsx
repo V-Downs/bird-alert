@@ -4,14 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import React, { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-// import { Button } from '@/components/ui/button'
-// import { Badge } from '@/components/ui/badge'
-// import { useEffect, useState } from 'react'
 import Airtable from 'airtable'
-// import { Label } from '@/components/ui/label'
-// import { Input } from '@/components/ui/input'
-
-
 
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
 
@@ -98,34 +91,39 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
       }
 
       const handleSubmit = async (e: React.FormEvent) => {
-        // e.preventDefault()
-        // setFormError(null)
-        // try {
-        //     // await handleAcceptSubmit(e)
-        //     setRescuerName(localRescuerName)
-        //     setRescuerPhone(localRescuerPhone)
-        // } catch (error) {
-        //     console.error('Error in form submission:', error)
-        //     setFormError('Failed to submit form. Please try again.')
-        // }
-        }
-
-        const fetchVolunteers = async () => {
-            setIsLoading(true)
-            setError(null)
-            try {
-              const records = await base('Rescue and Transport Team').select().all()
-              const volunteers = records.map((record: any) => ({
-                id: record.get('_id') as string,
-                name: record.get('Name') as string
-              }))
-              setVolunteers(volunteers)
-            } catch (error) {
-              console.error('Error fetching bird rescues:', error)
-              setError('Failed to fetch bird rescues. Please try again later.')
+        
+        console.log(selectedRescue.id)
+        const fields = { CurrentVolunteer: localRescuerName}
+        try {
+          const updatedRecords = await base('Bird Alerts').update([
+            {
+              id: selectedRescue.id,
+              fields: fields
             }
-            setIsLoading(false)
+          ])
+          setShowAcceptForm(false)
+          return updatedRecords
+        }catch {
+          throw error
+        }
+      }
+
+      const fetchVolunteers = async () => {
+          setIsLoading(true)
+          setError(null)
+          try {
+            const records = await base('Rescue and Transport Team').select().all()
+            const volunteers = records.map((record: any) => ({
+              id: record.get('_id') as string,
+              name: record.get('Name') as string
+            }))
+            setVolunteers(volunteers)
+          } catch (error) {
+            console.error('Error fetching bird rescues:', error)
+            setError('Failed to fetch bird rescues. Please try again later.')
           }
+          setIsLoading(false)
+        }
 
         
         function acceptForm( ) {
@@ -151,25 +149,18 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                             required
                             /> */}
                             <Label> Your Name</Label>
-                            <select>
+                            <select required onChange={(e) => setLocalRescuerName(e.target.value)} name='name'>
+                              <option disabled selected>-- Please Pick Your Name</option>
                                 {populateNameOptions()}
                             </select>
                                   
                                 
                         </div>
-                        <div className="space-y-2">
-                            {/* <Label htmlFor="rescuerPhone">Your Phone Number</Label>
-                            <Input
-                            id="rescuerPhone"
-                            value={localRescuerPhone}
-                            onChange={(e) => setLocalRescuerPhone(e.target.value)}
-                            required
-                            /> */}
-                        </div>
+                        
                         {formError && (
                             <div className="text-red-500 text-sm">{formError}</div>
                         )}
-                        <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
+                        <Button disabled={localRescuerName ? false : true}  type="submit" className="w-full bg-lime-600 hover:bg-lime-700 text-white">
                             Accept Rescue
                         </Button>
                         </form>
@@ -181,44 +172,19 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
 
         
         
-        function populateNameOptions() {            
-            const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
-    
-            const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}) => {
-                return (
-                    <option>
-                        {vol.name}
-                    </option>
-                )
-            })
-        
-            return volunteerOptionElements
-        }
-
-       
-    
-
-    //   const fetchBirdRescues = async () => {
-    //     setIsLoading(true)
-    //     setError(null)
-    //     try {
-    //       const records = await base('Bird Alerts').select().all()
-    //       const rescues: Bird[] = records.map(record => ({
-    //         id: record.get('_id') as string,
-    //         species: record.get('Type of Bird') as string,
-    //         location: record.get('Full Pick Up Address') as string,
-    //         destination: record.get('Drop Off Address') as string,
-    //         status: record.get('VolunteerStatus') as RescueStatus,
-    //         rescuerName: record.get('Current Volunteer') as string
-    
-    //       }))
-    //       setBirdRescues(rescues)
-    //     } catch (error) {
-    //       console.error('Error fetching bird rescues:', error)
-    //       setError('Failed to fetch bird rescues. Please try again later.')
-    //     }
-    //     setIsLoading(false)
-    //   }
+      function populateNameOptions() {            
+          const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
+  
+          const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
+              return (
+                  <option key={index} value={vol.name}>
+                      {vol.name}
+                  </option>
+              )
+          })
+      
+          return volunteerOptionElements
+      }
     
       const updateRescueInAirtable = async (id: string, fields: any) => {
         // console.log('Updating Airtable record:', id, 'with fields:', fields)
