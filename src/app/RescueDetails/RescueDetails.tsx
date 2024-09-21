@@ -1,4 +1,22 @@
-import { MapPinIcon, BirdIcon, TruckIcon, HomeIcon, CheckCircleIcon, MoreHorizontalIcon, UserIcon, ListIcon, MapIcon, ArrowLeftIcon, NavigationIcon, ChevronUpIcon, ChevronDownIcon, ShieldIcon, FilterIcon, XIcon } from 'lucide-react'
+import {
+    MapPinIcon,
+    BirdIcon,
+    TruckIcon,
+    HomeIcon,
+    CheckCircleIcon,
+    MoreHorizontalIcon,
+    UserIcon,
+    ListIcon,
+    MapIcon,
+    ArrowLeftIcon,
+    NavigationIcon,
+    ChevronUpIcon,
+    ChevronDownIcon,
+    ShieldIcon,
+    FilterIcon,
+    XIcon,
+    CircleUser
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -60,24 +78,24 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
           setIsLoading(true)
           try {
             const updatedFields = { VolunteerStatus: newStatus }
-            
+
             if (newStatus === 'Pending') {
               setShowAcceptForm(true)
               setIsLoading(false)
               return
             }
-    
+
             await updateRescueInAirtable(selectedRescue.id, updatedFields)
-    
+
             const updatedBird = {
               ...selectedRescue,
               ...updatedFields,
             }
-            setBirdRescues(birdRescues.map((bird: { id: any }) => 
+            setBirdRescues(birdRescues.map((bird: { id: any }) =>
               bird.id === selectedRescue.id ? updatedBird : bird
             ))
             setSelectedRescue(updatedBird)
-    
+
           } catch (error) {
             console.error('Error updating bird rescue status:', error)
             setError('Failed to update rescue status. Please try again.')
@@ -86,11 +104,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
           if (newStatus !== "In Route") {
             setSelectedRescue(null)
           }
-        
+
           fetchBirdRescues()
         }
-        
-      }  
+
+      }
 
       function handleAcceptClick() {
         setShowAcceptForm(true)
@@ -127,7 +145,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
             setIsLoading(false)
           }
 
-        
+
         function acceptForm( ) {
             return (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowAcceptForm(false)}>
@@ -154,8 +172,8 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                             <select>
                                 {populateNameOptions()}
                             </select>
-                                  
-                                
+
+
                         </div>
                         <div className="space-y-2">
                             {/* <Label htmlFor="rescuerPhone">Your Phone Number</Label>
@@ -179,11 +197,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 )
         }
 
-        
-        
-        function populateNameOptions() {            
+
+
+        function populateNameOptions() {
             const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
-    
+
             const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}) => {
                 return (
                     <option>
@@ -191,12 +209,12 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                     </option>
                 )
             })
-        
+
             return volunteerOptionElements
         }
 
-       
-    
+
+
 
     //   const fetchBirdRescues = async () => {
     //     setIsLoading(true)
@@ -210,7 +228,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
     //         destination: record.get('Drop Off Address') as string,
     //         status: record.get('VolunteerStatus') as RescueStatus,
     //         rescuerName: record.get('Current Volunteer') as string
-    
+
     //       }))
     //       setBirdRescues(rescues)
     //     } catch (error) {
@@ -219,7 +237,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
     //     }
     //     setIsLoading(false)
     //   }
-    
+
       const updateRescueInAirtable = async (id: string, fields: any) => {
         // console.log('Updating Airtable record:', id, 'with fields:', fields)
         try {
@@ -237,21 +255,21 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
-      
+
 
     useEffect(() => {
         fetchVolunteers()
     }, [])
-    
+
 
     return (
       <div>
         <div className="flex items-center">
-          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2"> 
+          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
             <ArrowLeftIcon className="h-4 w-4" />
           </Button>
         </div>
-        
+
         <Card className="border shadow-lg rounded-lg overflow-hidden">
           <CardHeader className="bg-stone-100 border-b border-stone-200 px-4 py-2">
             <div className="flex items-center justify-between mt-2">
@@ -265,9 +283,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
             </div>
           </CardHeader>
           <CardContent className="px-4 py-4 space-y-4">
-            {/* <img 
-              src={rescue.image} 
-              alt={rescue.species} 
+            {/* <img
+              src={rescue.image}
+              alt={rescue.species}
               className="w-full h-48 object-cover rounded-md shadow-md"
             /> */}
             <div className="space-y-4">
@@ -290,7 +308,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </a>
               </div>
               <div className="flex items-center bg-stone-50 p-3 rounded-md">
-                <TruckIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
+                <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
                 <span>Current Volunteer: <span className='bold-text'>{rescue.rescuerName ? rescue.rescuerName : "AVAILABLE"}</span> </span>
                 {/* <span className="text-stone-700">{rescue.distance}</span> */}
               </div>
@@ -312,7 +330,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </DropdownMenuContent>
               </DropdownMenu> */}
               {
-                showAcceptForm && 
+                showAcceptForm &&
                 acceptForm()
               }
               {rescue.status === 'Pending' && (
