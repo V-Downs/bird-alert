@@ -1,13 +1,21 @@
-import { MapPinIcon, BirdIcon, TruckIcon, HomeIcon, CheckCircleIcon, MoreHorizontalIcon, UserIcon, ListIcon, MapIcon, ArrowLeftIcon, NavigationIcon, ChevronUpIcon, ChevronDownIcon, ShieldIcon, FilterIcon, XIcon } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import {
+    MapPinIcon,
+    HomeIcon,
+    ArrowLeftIcon,
+    XIcon,
+    CircleUser
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import React, { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import Airtable from 'airtable'
 
+// rescue status is a list of statuses that is the same as the statuses in airtable under the column 'VolunteerStatus' in the Bird Alerts table
 type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
 
+// type Bird that is a collection of variables from airtable
 interface Bird {
   id: string,
   species: string,
@@ -18,6 +26,7 @@ interface Bird {
 }
 
 export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: Bird, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
+    //state variables
     const [location, setLocation] = useState<string>('Des Moines, IA')
     const [birdRescues, setBirdRescues] = useState<Bird[]>([])
     // const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
@@ -34,10 +43,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
     const [formError, setFormError] = useState<string | null>(null)
     const [volunteers, setVolunteers] = useState<any[]>([])
 
+    //connecting to airtable
     const airtable = new Airtable({ apiKey: process.env.NEXT_PUBLIC_AIRTABLE_ACCESS_TOKEN })
     const base = airtable.base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID!)
 
-
+    // colors for the statuses that correpond to the airtable colors in the 'VolunteerStatus' column
     const getStatusColor = (status: RescueStatus) => {
         switch (status) {
           case 'Pending': return 'bg-rose-600 hover:bg-rose-800'
@@ -47,30 +57,33 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
+      //Change status of VolunteerStatus
       const handleStatusChange = async (newStatus: RescueStatus) => {
         console.log(selectedRescue)
         if (selectedRescue) {
           setIsLoading(true)
           try {
             const updatedFields = { VolunteerStatus: newStatus }
-            
+
             if (newStatus === 'Pending') {
               setShowAcceptForm(true)
               setIsLoading(false)
               return
             }
-    
+
+            // update airtable column
             await updateRescueInAirtable(selectedRescue.id, updatedFields)
-    
+
+            // update the bird in BirdAlertList so that it has the new status
             const updatedBird = {
               ...selectedRescue,
               ...updatedFields,
             }
-            setBirdRescues(birdRescues.map((bird: { id: any }) => 
+            setBirdRescues(birdRescues.map((bird: { id: any }) =>
               bird.id === selectedRescue.id ? updatedBird : bird
             ))
             setSelectedRescue(updatedBird)
-    
+
           } catch (error) {
             console.error('Error updating bird rescue status:', error)
             setError('Failed to update rescue status. Please try again.')
@@ -79,11 +92,11 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
           if (newStatus !== "In Route") {
             setSelectedRescue(null)
           }
-        
+
           fetchBirdRescues()
         }
-        
-      }  
+
+      }
 
       function handleAcceptClick() {
         setShowAcceptForm(true)
@@ -91,7 +104,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
       }
 
       const handleSubmit = async (e: React.FormEvent) => {
-        
+
         console.log(selectedRescue.id)
         const fields = { CurrentVolunteer: localRescuerName}
         try {
@@ -108,6 +121,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
+      // get volunteers based off of the PossibleVolunteers column
       const fetchVolunteers = async () => {
           setIsLoading(true)
           setError(null)
@@ -121,11 +135,12 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
           } catch (error) {
             console.error('Error fetching bird rescues:', error)
             setError('Failed to fetch bird rescues. Please try again later.')
+
           }
           setIsLoading(false)
         }
 
-        
+
         function acceptForm( ) {
             return (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowAcceptForm(false)}>
@@ -153,10 +168,10 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                               <option disabled selected>-- Please Pick Your Name</option>
                                 {populateNameOptions()}
                             </select>
-                                  
-                                
+
+
                         </div>
-                        
+
                         {formError && (
                             <div className="text-red-500 text-sm">{formError}</div>
                         )}
@@ -169,23 +184,26 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </div>
                 )
         }
-
         
-        
+      // this is what actually populates the list        
       function populateNameOptions() {            
           const volunteerOptions = volunteers.filter((vol: { id: string }) => selectedRescue.possibleVolunteers.includes(vol.id))
   
           const volunteerOptionElements = volunteerOptions.map((vol: { id: string , name: string}, index: number) => {
               return (
                   <option key={index} value={vol.name}>
-                      {vol.name}
-                  </option>
-              )
-          })
-      
-          return volunteerOptionElements
-      }
-    
+                        {vol.name}
+                    </option>
+                )
+            })
+
+            return volunteerOptionElements
+        }
+
+
+
+
+
       const updateRescueInAirtable = async (id: string, fields: any) => {
         // console.log('Updating Airtable record:', id, 'with fields:', fields)
         try {
@@ -203,21 +221,21 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
         }
       }
 
-      
+
 
     useEffect(() => {
         fetchVolunteers()
     }, [])
-    
+
 
     return (
       <div>
         <div className="flex items-center">
-          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2"> 
+          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
             <ArrowLeftIcon className="h-4 w-4" />
           </Button>
         </div>
-        
+
         <Card className="border shadow-lg rounded-lg overflow-hidden">
           <CardHeader className="bg-stone-100 border-b border-stone-200 px-4 py-2">
             <div className="flex items-center justify-between mt-2">
@@ -231,9 +249,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
             </div>
           </CardHeader>
           <CardContent className="px-4 py-4 space-y-4">
-            {/* <img 
-              src={rescue.image} 
-              alt={rescue.species} 
+            {/* <img
+              src={rescue.image}
+              alt={rescue.species}
               className="w-full h-48 object-cover rounded-md shadow-md"
             /> */}
             <div className="space-y-4">
@@ -256,8 +274,10 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </a>
               </div>
               <div className="flex items-center bg-stone-50 p-3 rounded-md">
-                <TruckIcon className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
+
+                <CircleUser className="mr-2 h-5 w-5 flex-shrink-0 text-stone-500" />
                 <span>Current Volunteer: <span className='bold-text'>{rescue.currentVolunteer ? rescue.currentVolunteer : "AVAILABLE"}</span> </span>
+
                 {/* <span className="text-stone-700">{rescue.distance}</span> */}
               </div>
             </div>
@@ -278,7 +298,7 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                 </DropdownMenuContent>
               </DropdownMenu> */}
               {
-                showAcceptForm && 
+                showAcceptForm &&
                 acceptForm()
               }
               {rescue.status === 'Pending' && (
