@@ -32,15 +32,10 @@ export default function BirdAlertList() {
     const [location, setLocation] = useState<string>('Des Moines, IA')
     const [birdRescues, setBirdRescues] = useState<Bird[]>([])
     const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
-    const [activeView, setActiveView] = useState<'list' | 'admin'>('list')
     const allStatuses = ['Pending', 'In Route', 'Rescued', 'Delivered'] as RescueStatus[];
     const [value, setValue] = useState(new Set<RescueStatus>(['Pending', 'In Route', 'Rescued']))
-    // const [selectedBirdTypes, setSelectedBirdTypes] = useState<BirdType[]>(['Songbird', 'Raptor', 'Waterfowl', 'Shorebird', 'Other'])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [showAcceptForm, setShowAcceptForm] = useState(false)
-    const [rescuerName, setRescuerName] = useState('')
-    const [rescuerPhone, setRescuerPhone] = useState('')
 
     const [isFilterOpen, setIsFilterIsFilterOpen] = useState(false)
 
@@ -78,7 +73,6 @@ export default function BirdAlertList() {
         setIsLoading(false)
       }
 
-    console.log(birdRescues)
 
     useEffect(() => {
     fetchBirdRescues()
