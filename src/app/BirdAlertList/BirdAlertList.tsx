@@ -124,7 +124,7 @@ export default function BirdAlertList() {
                             variant="outline"
                             role="combobox"
                             aria-expanded={isFilterOpen}
-                            className="w-[200px] justify-between"
+                            className="justify-between"
                         >
                             {value
                                 ? Array.from(value).join(',')
@@ -140,6 +140,7 @@ export default function BirdAlertList() {
                                 <CommandGroup>
                                     {allStatuses.map((framework) => (
                                         <CommandItem
+                                            key={framework}
                                             onSelect={(currentValue) => {
                                                     const newValue = new Set(value)
                                                     if (newValue.has(framework)) {
