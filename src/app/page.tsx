@@ -21,7 +21,6 @@ interface Bird {
   birdType: BirdType
   location: string
   destination: string
-  distance: string
   status: RescueStatus
   image: string
 }
@@ -87,7 +86,6 @@ export default function BirdRescueApp() {
         birdType: record.get('birdType') as BirdType,
         location: record.get('location') as string,
         destination: record.get('destination') as string,
-        distance: record.get('distance') as string,
         status: record.get('status') as RescueStatus,
         image: record.get('image') as string,
       }))
@@ -164,7 +162,6 @@ export default function BirdRescueApp() {
           birdType: newRescue.birdType,
           location: newRescue.location,
           destination: newRescue.destination,
-          distance: '0 miles', // This should be calculated based on actual coordinates
           status: 'Available',
           image: newRescue.image || '/placeholder.svg?height=200&width=200',
         }
@@ -454,7 +451,6 @@ export default function BirdRescueApp() {
           </div>
           <div className="flex items-center">
             <TruckIcon className="mr-2 h-5 w-5 text-gray-500" />
-            <span>{rescue.distance}</span>
           </div>
         </div>
         <div className="space-y-4">
