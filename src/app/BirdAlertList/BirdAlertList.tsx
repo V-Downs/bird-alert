@@ -17,21 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import {cn} from "@/lib/utils";
 
-// rescue status is a list of statuses that is the same as the statuses in airtable under the column 'VolunteerStatus' in the Bird Alerts table
-type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
-
-// type Bird has variables from the airtable database. Rescuer name is the same as the 'Current Volunteer'
-interface Bird {
-  id: string,
-  species: string,
-  location: string,
-  destination: string,
-  status: RescueStatus,
-  possibleVolunteers: object[],
-  currentVolunteer: string,
-  photo: { url: string, width: number, height: number },
-}
-
 export default function BirdAlertList() {
     // creates the variables needed to set up the bird alert list
     const [location, setLocation] = useState<string>('Des Moines, IA')
@@ -73,6 +58,7 @@ export default function BirdAlertList() {
             location: record.get('Full Pick Up Address') as string,
             destination: record.get('Drop Off Address') as string,
             status: record.get('VolunteerStatus') as RescueStatus,
+            rtLevel: record.get('R&T Level') as RTLevel,
             possibleVolunteers: record.get("Possible Volunteers") as object[],
             currentVolunteer: record.get("CurrentVolunteer") as string,
             photo: record.get('Bird Photo') ? ((record.get('Bird Photo') as object[])[0] as { url: string, width: number, height: number }) : {}as { url: string, width: number, height: number },

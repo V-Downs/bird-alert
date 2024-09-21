@@ -12,20 +12,6 @@ import React, { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import Airtable from 'airtable'
 
-// rescue status is a list of statuses that is the same as the statuses in airtable under the column 'VolunteerStatus' in the Bird Alerts table
-type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
-
-// type Bird that is a collection of variables from airtable
-interface Bird {
-  id: string,
-  species: string,
-  location: string,
-  destination: string,
-  status: RescueStatus,
-  currentVolunteer: string,
-  photo: { url: string, width: number, height: number },
-}
-
 export default function RescueDetails({ rescue, onBack, selectedRescue, setSelectedRescue, fetchBirdRescues }: { rescue: Bird, onBack: () => void, selectedRescue: any, setSelectedRescue: any, fetchBirdRescues: any }) {
     //state variables
     const [location, setLocation] = useState<string>('Des Moines, IA')
@@ -56,6 +42,15 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
           case 'Rescued': return 'bg-violet-700 hover:bg-violet-800'
           case 'Delivered': return 'bg-teal-700 hover:bg-teal-800'
         }
+      }
+
+      const getRTLevelColor = (level: RTLevel) => {
+          switch (level) {
+              case 'Green: songbirds & babies': return 'bg-green-600'
+              case 'Yellow: geese, ducks and swans': return 'bg-yellow-600'
+              case 'Red: herons, bats': return 'bg-red-600'
+              case 'Purple: raptors': return 'bg-purple-600'
+          }
       }
 
       //Change status of VolunteerStatus
@@ -256,6 +251,9 @@ export default function RescueDetails({ rescue, onBack, selectedRescue, setSelec
                     height={rescue.photo['height']}
                     alt={rescue.species}
                     className="rounded-md shadow-md"/>
+                <Badge variant="secondary" className={`${getRTLevelColor(rescue.rtLevel)} text-white`}>
+                    {rescue.rtLevel}
+                </Badge>
                 <div className="space-y-4">
                     <div className="flex items-center justify-between bg-stone-50 p-3 rounded-md">
                         <div className="flex items-center overflow-hidden">
