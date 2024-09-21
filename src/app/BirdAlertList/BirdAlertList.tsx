@@ -17,25 +17,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import {cn} from "@/lib/utils";
 
-// rescue status is a list of statuses that is the same as the statuses in airtable under the column 'VolunteerStatus' in the Bird Alerts table
-type RescueStatus = 'Pending' | 'In Route' | 'Rescued' | 'Delivered'
-
-// type Bird has variables from the airtable database. Rescuer name is the same as the 'Current Volunteer'
-interface Bird {
-  id: string,
-  species: string,
-  location: string,
-  destination: string,
-  status: RescueStatus,
-  possibleVolunteers: object[],
-  currentVolunteer: string
-}
-
 export default function BirdAlertList() {
     // creates the variables needed to set up the bird alert list
     const [location, setLocation] = useState<string>('Des Moines, IA')
-    const [birdRescues, setBirdRescues] = useState<Bird[]>([])
-    const [selectedRescue, setSelectedRescue] = useState<Bird | null>(null)
+    const [birdRescues, setBirdRescues] = useState<BirdAlert[]>([])
+    const [selectedRescue, setSelectedRescue] = useState<BirdAlert | null>(null)
     const allStatuses = ['Pending', 'In Route', 'Rescued', 'Delivered'] as RescueStatus[];
     const [value, setValue] = useState(new Set<RescueStatus>(['Pending', 'In Route', 'Rescued']))
     const [isLoading, setIsLoading] = useState(true)
@@ -66,14 +52,17 @@ export default function BirdAlertList() {
           const records = await base('Bird Alerts').select().all()
 
           //conversion
-          const rescues: Bird[] = records.map((record) => ({
+          const rescues: BirdAlert[] = records.map((record) => ({
             id: record.get('_id') as string,
             species: record.get('Type of Bird') as string,
             location: record.get('Full Pick Up Address') as string,
             destination: record.get('Drop Off Address') as string,
             status: record.get('VolunteerStatus') as RescueStatus,
+            rtLevel: record.get('R&T Level') as RTLevel,
+            skills: record.get('Technical Skills') as Skills[],
             possibleVolunteers: record.get("Possible Volunteers") as object[],
-            currentVolunteer: record.get("CurrentVolunteer") as string
+            currentVolunteer: record.get("CurrentVolunteer") as string,
+            photo: record.get('Bird Photo') ? ((record.get('Bird Photo') as object[])[0] as { url: string, width: number, height: number }) : {}as { url: string, width: number, height: number },
           }))
 
           //sets state variable
